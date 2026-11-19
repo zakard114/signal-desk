@@ -12,75 +12,149 @@
     />
     <link rel="stylesheet" href="/static/app.css" />
   </head>
-  <body>
-    <header class="hero">
-      <div class="hero-inner">
-        <div class="hero-copy">
-          <h1>Signal Desk</h1>
-          <p class="tagline">
-            Configure a probability rule, run the vector simulation view, and inspect latest model signals.
-          </p>
-          <p class="run-meta" id="run-meta">Loading…</p>
-          <span class="badge-preview" id="preview-badge">UI preview</span>
-        </div>
-        <div class="hero-actions">
-          <a class="btn-ops" href="/ops">Ops</a>
-          <a class="btn-ops" href="/docs" target="_blank" rel="noopener">API</a>
-        </div>
-      </div>
-    </header>
-
-    <div class="layout">
-      <aside class="panel controls">
-        <h2>Strategy inputs</h2>
-        <div class="field">
-          <label>
-            Probability threshold
-            <span class="val" id="threshold-val">0.55</span>
-          </label>
-          <input id="threshold" type="range" min="0.5" max="0.65" step="0.01" value="0.55" />
-        </div>
-        <div class="field">
-          <label for="notional">Trade size (USD)</label>
-          <input id="notional" type="number" min="1" step="1" value="100" />
-        </div>
-        <div class="field">
-          <label for="fee">Fee rate</label>
-          <input id="fee" type="number" min="0" step="0.0001" value="0.002" />
-        </div>
-        <div class="field">
-          <label for="ticker-filter">Ticker filter</label>
-          <input id="ticker-filter" type="text" placeholder="e.g. AAPL" autocomplete="off" />
-        </div>
-        <button type="button" class="btn-primary" id="btn-run">Update simulation</button>
-      </aside>
-
-      <main class="panel results" id="results">
-        <h2>Simulation output</h2>
-        <div class="kpis" id="kpis"></div>
-        <div class="table-wrap">
-          <h2>Latest signals</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Ticker</th>
-                <th>Type</th>
-              </tr>
-            </thead>
-            <tbody id="signals-body"></tbody>
-          </table>
-        </div>
-      </main>
+  <body class="mode-desk">
+    <div class="chrome">
+      <div class="draft">Signal Desk · artifact-backed</div>
+      <button class="ops-corner" id="open-ops" type="button">Ops</button>
     </div>
 
-    <footer>
-      <a href="/docs">OpenAPI</a>
-      ·
-      <a href="https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project" target="_blank" rel="noopener"
-        >Course pipeline (GitHub)</a
-      >
-    </footer>
+    <div id="desk-shell">
+      <header class="hero">
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <h1>Signal Desk</h1>
+            <p class="tagline">
+              Configure a probability rule, run the vector simulation view, and inspect latest model signals.
+            </p>
+            <p class="run-meta" id="run-meta">Loading…</p>
+            <span class="badge-preview" id="preview-badge">UI preview</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="layout">
+        <aside class="panel controls">
+          <h2>Strategy inputs</h2>
+          <div class="field">
+            <label>
+              Probability threshold
+              <span class="val" id="threshold-val">0.55</span>
+            </label>
+            <input id="threshold" type="range" min="0.5" max="0.65" step="0.01" value="0.55" />
+          </div>
+          <div class="field">
+            <label for="notional">Trade size (USD)</label>
+            <input id="notional" type="number" min="1" step="1" value="100" />
+          </div>
+          <div class="field">
+            <label for="fee">Fee rate</label>
+            <input id="fee" type="number" min="0" step="0.0001" value="0.002" />
+          </div>
+          <div class="field">
+            <label for="ticker-filter">Ticker filter</label>
+            <input id="ticker-filter" type="text" placeholder="e.g. AAPL" autocomplete="off" />
+          </div>
+          <button type="button" class="btn-primary" id="btn-run">Update simulation</button>
+        </aside>
+
+        <main class="panel results" id="results">
+          <h2>Simulation output</h2>
+          <div class="kpis" id="kpis"></div>
+          <div class="table-wrap">
+            <h2>Latest signals</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Ticker</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody id="signals-body"></tbody>
+            </table>
+          </div>
+        </main>
+      </div>
+
+      <footer>
+        <a href="https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project" target="_blank" rel="noopener"
+          >Course pipeline (GitHub)</a
+        >
+        ·
+        <a href="https://github.com/zakard114/signal-desk" target="_blank" rel="noopener">signal-desk</a>
+      </footer>
+    </div>
+
+    <div class="ops-stage" id="ops-stage" hidden>
+      <section class="ops-desk" aria-label="Operations console">
+        <div class="ops-head">
+          <div class="ops-mark">Signal Desk · Ops</div>
+          <div class="tabs" role="tablist">
+            <button class="tab on" type="button" data-tab="inspector" role="tab" aria-selected="true">
+              Inspector
+            </button>
+            <button class="tab" type="button" data-tab="log" role="tab" aria-selected="false">Log</button>
+            <button class="tab" type="button" data-tab="api" role="tab" aria-selected="false">API</button>
+          </div>
+          <button class="ghost" id="close-ops" type="button">Desk</button>
+        </div>
+
+        <div class="ops-body">
+          <div data-panel="inspector">
+            <div class="eyebrow">Inspector</div>
+            <h2 class="entry-title" id="insp-title">No simulation yet</h2>
+            <p class="note">
+              Latest artifact-backed simulation for quant ops. Threshold selects the <code>pred_rf_*</code> column;
+              KPIs come from frozen vector simulation JSON on this host.
+            </p>
+            <dl class="kv" id="insp-kv">
+              <div><dt>Mode</dt><dd id="insp-mode">—</dd></div>
+              <div><dt>Health</dt><dd id="insp-health">—</dd></div>
+              <div><dt>Threshold</dt><dd id="insp-threshold">—</dd></div>
+              <div><dt>Pred column</dt><dd id="insp-pred">—</dd></div>
+              <div><dt>CAGR</dt><dd id="insp-cagr">—</dd></div>
+              <div><dt>Test trades</dt><dd id="insp-trades">—</dd></div>
+              <div><dt>Net P&amp;L</dt><dd id="insp-pnl">—</dd></div>
+              <div><dt>Signals</dt><dd id="insp-signals">—</dd></div>
+              <div><dt>Artifact</dt><dd id="insp-artifact">—</dd></div>
+              <div><dt>Generated</dt><dd id="insp-generated">—</dd></div>
+              <div><dt>Source</dt><dd id="insp-source">—</dd></div>
+            </dl>
+            <p class="note ops-local">
+              Refresh artifact (local E: only, not on Render):
+              <code>python ops/export_artifacts.py</code>
+            </p>
+          </div>
+
+          <div data-panel="log" hidden>
+            <div class="eyebrow">Log</div>
+            <p class="note">Session log of API calls from this browser (desk + Ops).</p>
+            <ul class="log-list" id="log-list"></ul>
+          </div>
+
+          <div data-panel="api" hidden>
+            <div class="eyebrow">API</div>
+            <p class="note">Same-origin FastAPI routes on this host. Interactive schema: <a href="/docs" target="_blank" rel="noopener">OpenAPI /docs</a> (advanced).</p>
+            <table class="api-table">
+              <thead>
+                <tr><th>Method</th><th>Path</th><th>Role</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>GET</td><td><code>/</code></td><td>Ledger desk UI</td></tr>
+                <tr><td>GET</td><td><code>/health</code></td><td>Liveness + artifact path</td></tr>
+                <tr><td>GET</td><td><code>/v1/meta</code></td><td>Artifact metadata</td></tr>
+                <tr><td>GET</td><td><code>/v1/threshold-grid</code></td><td>Precomputed cutoffs + KPIs</td></tr>
+                <tr><td>GET</td><td><code>/v1/simulation?threshold=</code></td><td>Simulation row for threshold</td></tr>
+                <tr><td>GET</td><td><code>/v1/signals/latest?threshold=</code></td><td>Latest signal table slice</td></tr>
+              </tbody>
+            </table>
+            <pre class="sample" id="api-sample">GET /v1/simulation?threshold=0.55
+GET /v1/signals/latest?threshold=0.55</pre>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <script src="/static/app.js"></script>
   </body>
 </html>

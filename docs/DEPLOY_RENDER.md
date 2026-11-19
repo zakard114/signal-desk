@@ -14,7 +14,7 @@ Deadline context: set **Live demo** in root `README.md` before **11/21** if you 
 2. **Blueprints** → **New Blueprint Instance**
 3. Connect `zakard114/signal-desk`
 4. Approve service `signal-desk` (Docker, free plan)
-5. Wait until deploy is **Live**; note URL `https://signal-desk-xxxx.onrender.com`
+5. Wait until deploy is **Live**; production URL: https://signal-desk-c3dx.onrender.com
 
 ## Option B — Manual Web Service
 

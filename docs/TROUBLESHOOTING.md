@@ -24,6 +24,12 @@
 
 **Fix:** Commit refreshed artifact, redeploy, check `/health`.
 
+## Ops vs API docs
+
+**Symptom:** Looking for Swagger from the desk header.
+
+**Fix:** Use **Ops** (top-right) → **API** tab for routes and samples. OpenAPI `/docs` is linked from that tab only.
+
 ## Course submission vs this demo
 
 **Symptom:** Which URL for the course form?

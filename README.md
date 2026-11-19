@@ -5,14 +5,14 @@ US equity ML signals — FastAPI + ledger UI over frozen simulation artifacts.
 | | |
 |---|---|
 | **Repository** | https://github.com/zakard114/signal-desk |
-| **Live demo** | Deploy on Render (Dockerfile) — add URL here after first deploy |
+| **Live demo** | https://signal-desk-c3dx.onrender.com |
 | **Capstone pipeline** | [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) (course @ `dd4cd5a`) |
 
 ## Features
 
 - Web: threshold slider, simulation KPIs, latest signals table
 - API: `/v1/threshold-grid`, `/v1/simulation?threshold=`, `/v1/signals/latest?threshold=`
-- Ops: `/ops`
+- Ops: in-app overlay (top-right **Ops** → Inspector · Log · API); shortcut `GET /ops` → `/?view=ops`
 
 No parquet in this repository; cloud serves `artifacts/latest.json` only.
 

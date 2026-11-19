@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.artifacts import artifact_path, load_artifact
@@ -82,7 +82,7 @@ def signals_latest(threshold: float | None = Query(default=None, ge=0.5, le=0.65
 
 @app.get("/ops")
 def ops_page():
-    return FileResponse(STATIC / "ops.html")
+    return RedirectResponse(url="/?view=ops", status_code=302)
 
 
 @app.get("/")

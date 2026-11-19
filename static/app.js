@@ -15,11 +15,48 @@ let state = {
   defaults: { trade_notional_usd: 100, fee_rate: 0.002 },
   thresholdGrid: [],
   useApi: false,
+  health: null,
+  lastSim: null,
+  lastSignalCount: 0,
 };
+
+const sessionLog = [];
 
 function fmtNum(n, digits = 2) {
   if (n == null || Number.isNaN(n)) return "—";
   return Number(n).toLocaleString(undefined, { maximumFractionDigits: digits });
+}
+
+function logApi({ method, path, status, ms, ok }) {
+  sessionLog.unshift({
+    time: new Date().toLocaleTimeString(),
+    method,
+    path,
+    status,
+    ms: Math.round(ms),
+    ok,
+  });
+  if (sessionLog.length > 60) sessionLog.pop();
+  refreshOpsLog();
+}
+
+async function fetchJson(path) {
+  const t0 = performance.now();
+  const res = await fetch(path);
+  const ms = performance.now() - t0;
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    data = null;
+  }
+  logApi({ method: "GET", path, status: res.status, ms, ok: res.ok });
+  if (!res.ok) {
+    const err = new Error(`HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  return data;
 }
 
 function scaleSimulation(sim, notional, fee) {
@@ -40,8 +77,8 @@ function scaleSimulation(sim, notional, fee) {
 
 async function loadFromApi() {
   const [meta, gridRes] = await Promise.all([
-    fetch("/v1/meta").then((r) => r.json()),
-    fetch("/v1/threshold-grid").then((r) => r.json()),
+    fetchJson("/v1/meta"),
+    fetchJson("/v1/threshold-grid"),
   ]);
   state.meta = meta;
   state.useApi = true;
@@ -65,13 +102,13 @@ function loadMockOnly() {
   state.thresholdGrid = MOCK_GRID;
 }
 
-async function fetchRun(threshold, tickerFilter) {
+async function fetchRun(threshold) {
   const q = `threshold=${threshold}`;
   const [sim, sig] = await Promise.all([
-    fetch(`/v1/simulation?${q}`).then((r) => r.json()),
-    fetch(`/v1/signals/latest?${q}`).then((r) => r.json()),
+    fetchJson(`/v1/simulation?${q}`),
+    fetchJson(`/v1/signals/latest?${q}`),
   ]);
-  return { sim, signals: sig.signals || [], tickerFilter };
+  return { sim, signals: sig.signals || [] };
 }
 
 function nearestFromGrid(threshold) {
@@ -121,6 +158,7 @@ function renderSignals(rows, filter) {
         )
         .join("")
     : `<tr class="empty-row"><td colspan="3">No signals match filter.</td></tr>`;
+  return filtered.length;
 }
 
 function readControls() {
@@ -136,6 +174,132 @@ function syncThresholdLabel() {
   document.getElementById("threshold-val").textContent = parseFloat(v).toFixed(2);
 }
 
+function refreshInspector() {
+  const title = document.getElementById("insp-title");
+  if (!title) return;
+  const sim = state.lastSim;
+  const mode = state.useApi ? "LIVE (artifact)" : "MOCK (offline)";
+  const health = state.health;
+  const healthText =
+    health && health.status === "ok"
+      ? health.artifact_exists
+        ? "ok · artifact present"
+        : "ok · artifact missing"
+      : health
+        ? String(health.status || "unknown")
+        : "—";
+
+  if (!sim) {
+    title.textContent = "No simulation yet";
+    title.className = "entry-title";
+  } else {
+    title.textContent = `Simulation @ ${sim.threshold_selected != null ? sim.threshold_selected.toFixed(2) : "—"}`;
+    title.className = "entry-title ok";
+  }
+
+  const set = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text ?? "—";
+  };
+  set("insp-mode", mode);
+  set("insp-health", healthText);
+  set("insp-threshold", sim?.threshold_selected != null ? sim.threshold_selected.toFixed(2) : "—");
+  set("insp-pred", sim?.pred_column || state.meta.strategy || "—");
+  set("insp-cagr", sim ? fmtNum(sim.cagr_approx, 3) : "—");
+  set("insp-trades", sim ? fmtNum(sim.test_trades, 0) : "—");
+  set("insp-pnl", sim ? fmtNum(sim.net_pnl_usd, 1) : "—");
+  set("insp-signals", String(state.lastSignalCount));
+  set("insp-artifact", health?.artifact ? "on disk in image" : "—");
+  set("insp-generated", state.meta.generated_at || "—");
+  set("insp-source", state.meta.source || "—");
+}
+
+function refreshOpsLog() {
+  const list = document.getElementById("log-list");
+  if (!list) return;
+  if (!sessionLog.length) {
+    list.innerHTML = '<li class="log-empty">No API calls in this session yet.</li>';
+    return;
+  }
+  list.innerHTML = sessionLog
+    .map((row) => {
+      const cls = row.ok ? "ok" : "err";
+      return `<li class="${cls}"><span>${row.time}</span><span>${row.method}</span><span>${row.path}</span><span>${row.status} · ${row.ms}ms</span></li>`;
+    })
+    .join("");
+}
+
+function setApiSampleBase() {
+  const el = document.getElementById("api-sample");
+  if (!el) return;
+  const base = window.location.origin;
+  el.textContent = `GET ${base}/v1/simulation?threshold=0.55
+GET ${base}/v1/signals/latest?threshold=0.55
+GET ${base}/health`;
+}
+
+function bindOpsUi() {
+  const deskShell = document.getElementById("desk-shell");
+  const opsStage = document.getElementById("ops-stage");
+  const openOps = document.getElementById("open-ops");
+  const closeOps = document.getElementById("close-ops");
+  if (!opsStage || !openOps || !closeOps || !deskShell) return;
+
+  const showOps = () => {
+    deskShell.hidden = true;
+    opsStage.hidden = false;
+    document.body.classList.add("mode-ops");
+    document.body.classList.remove("mode-desk");
+    refreshInspector();
+    refreshOpsLog();
+    if (window.history.replaceState) {
+      window.history.replaceState(null, "", "/?view=ops");
+    }
+  };
+
+  const showDesk = () => {
+    opsStage.hidden = true;
+    deskShell.hidden = false;
+    document.body.classList.add("mode-desk");
+    document.body.classList.remove("mode-ops");
+    if (window.history.replaceState) {
+      window.history.replaceState(null, "", "/");
+    }
+  };
+
+  openOps.addEventListener("click", showOps);
+  closeOps.addEventListener("click", showDesk);
+
+  document.querySelectorAll(".ops-head .tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const name = btn.getAttribute("data-tab");
+      document.querySelectorAll(".ops-head .tab").forEach((b) => {
+        b.classList.toggle("on", b === btn);
+        b.setAttribute("aria-selected", b === btn ? "true" : "false");
+      });
+      document.querySelectorAll("[data-panel]").forEach((panel) => {
+        panel.hidden = panel.getAttribute("data-panel") !== name;
+      });
+    });
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("view") === "ops" || window.location.pathname === "/ops") {
+    showOps();
+  } else {
+    document.body.classList.add("mode-desk");
+  }
+}
+
+async function loadHealth() {
+  try {
+    state.health = await fetchJson("/health");
+  } catch {
+    state.health = { status: "unreachable", artifact_exists: false };
+  }
+  refreshInspector();
+}
+
 async function runSimulation() {
   const results = document.getElementById("results");
   const btn = document.getElementById("btn-run");
@@ -149,24 +313,33 @@ async function runSimulation() {
 
   try {
     if (state.useApi) {
-      const run = await fetchRun(threshold, tickerFilter);
+      const run = await fetchRun(threshold);
       sim = scaleSimulation(run.sim, notional, fee);
       signals = run.signals;
     } else {
       await new Promise((r) => setTimeout(r, 350));
       sim = scaleSimulation(nearestFromGrid(threshold), notional, fee);
       signals = MOCK_SIGNALS;
+      logApi({
+        method: "—",
+        path: "mock simulation",
+        status: 200,
+        ms: 350,
+        ok: true,
+      });
     }
   } catch (e) {
-    sim = nearestFromGrid(threshold);
+    sim = scaleSimulation(nearestFromGrid(threshold), notional, fee);
     signals = MOCK_SIGNALS;
     console.warn(e);
   }
 
+  state.lastSim = sim;
   document.getElementById("run-meta").textContent =
     `Strategy ${sim.pred_column || "—"} · artifact ${state.meta.generated_at || "—"}`;
   renderKpis(sim);
-  renderSignals(signals, tickerFilter);
+  state.lastSignalCount = renderSignals(signals, tickerFilter);
+  refreshInspector();
   results.classList.remove("loading");
   btn.disabled = false;
   btn.textContent = "Update simulation";
@@ -183,16 +356,22 @@ function bindUi() {
   document.getElementById("ticker-filter").addEventListener("input", () => {
     const { threshold, tickerFilter } = readControls();
     if (state.useApi) {
-      fetch(`/v1/signals/latest?threshold=${threshold}`)
-        .then((r) => r.json())
-        .then((d) => renderSignals(d.signals, tickerFilter));
+      fetchJson(`/v1/signals/latest?threshold=${threshold}`)
+        .then((d) => {
+          state.lastSignalCount = renderSignals(d.signals, tickerFilter);
+          refreshInspector();
+        })
+        .catch(() => renderSignals(MOCK_SIGNALS, tickerFilter));
     } else {
-      renderSignals(MOCK_SIGNALS, tickerFilter);
+      state.lastSignalCount = renderSignals(MOCK_SIGNALS, tickerFilter);
+      refreshInspector();
     }
   });
 }
 
 async function init() {
+  bindOpsUi();
+  setApiSampleBase();
   bindUi();
   syncThresholdLabel();
   try {
@@ -200,6 +379,7 @@ async function init() {
     const n = state.thresholdGrid.length;
     document.getElementById("preview-badge").textContent =
       n > 1 ? `Live · ${n} thresholds` : "Live (re-run export for grid)";
+    await loadHealth();
   } catch {
     loadMockOnly();
     document.getElementById("preview-badge").textContent = "UI preview (mock data)";

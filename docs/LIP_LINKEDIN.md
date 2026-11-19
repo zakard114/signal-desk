@@ -4,7 +4,7 @@ SMA 2026 optional LiP: prefer **post URL** or **live demo URL**, not profile-onl
 
 ## Checklist
 
-- [ ] Render (or local) demo works
+- [x] Render demo https://signal-desk-c3dx.onrender.com
 - [ ] Post published on LinkedIn
 - [ ] Optional: add post URL or demo URL to course LiP field if the form allows
 
@@ -23,7 +23,7 @@ For Learning in Public I split the work:
 
 Stack: Python, scikit-learn, FastAPI, Docker, Render.
 
-**Live demo:** _paste Render URL after deploy_
+**Live demo:** https://signal-desk-c3dx.onrender.com
 
 **What I learned:** threshold choice changes CAGR and trade count a lot; exporting a small threshold grid made the API/UI honest without re-fitting on every click.
 
@@ -36,7 +36,7 @@ SMA 캡스톤(랜덤포레스트 + 벡터 시뮬) 제출 후, LiP용으로 **Sig
 - 재현용: [ZoomCamp SMA/Project](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project)
 - 데모: https://github.com/zakard114/signal-desk (FastAPI, threshold 슬라이더, KPI/시그널 테이블)
 
-라이브 URL: _(Render 배포 후 붙여넣기)_
+라이브 URL: https://signal-desk-c3dx.onrender.com
 
 ## README screenshots (optional)
 
