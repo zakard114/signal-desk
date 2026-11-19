@@ -2,42 +2,225 @@
 
 ![Signal Desk — US equity signals hero](docs/images/readme-hero-banner.jpg)
 
-## Purpose
+**US equity ML signals — FastAPI + ledger UI over frozen simulation artifacts.**
 
-**Signal Desk** is a portfolio-facing demo for **US equity machine-learning trade signals**.  
-Offline training and parquet live on your workstation; this repository ships only **`artifacts/latest.json`** — frozen simulation KPIs and latest signal rows for a fixed threshold grid (**0.55–0.60**).
+Built as a portfolio demo alongside [Stock Markets Analytics Zoomcamp](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp) (personal study materials @ `dd4cd5a`).
 
-The desk lets you **drag strategy inputs** to preview KPIs and the **Latest signals** table on screen. **Update simulation** commits that threshold to the running API, **Recent runs**, and **Ops** (Inspector, session log, route tester, in-app Grafana board). There is no re-fit or parquet access on Render.
+**Live demo (Render):** https://signal-desk-c3dx.onrender.com  
+**OpenAPI:** https://signal-desk-c3dx.onrender.com/docs  
+**Repository:** https://github.com/zakard114/signal-desk  
+
+Desk + **Ops** (Inspector · Log · API · in-app Grafana tab) on one host. No separate Grafana server on Render.
+
+## Mission
+
+**Signal Desk — show the signal, commit on purpose.**
+
+Reviewers need to see how a **probability threshold** changes trades, P&L, and latest model signals **without** re-running training in the cloud. This app reads a **frozen artifact** (`artifacts/latest.json`) and exposes:
+
+- A **desk** where dragging inputs **previews** KPIs and the signals table.
+- **Update simulation** to commit the threshold to the API, **Recent runs**, and **Ops** audit charts.
+- Same-origin **Ops** for inspection, session log, route **Try**, and `GET /ops/board`.
+
+Parquet, RandomForest fit, and `export_artifacts.py` stay **offline**; Render ships the JSON snapshot in the Docker image only.
+
+## Table of contents
+
+- [Mission](#mission)
+- [Problem](#problem)
+- [Status](#status)
+- [Paths (read this first)](#paths-read-this-first)
+- [Recent updates](#recent-updates)
+- [Quick demo](#quick-demo)
+- [Features](#features)
+- [Quick start](#quick-start)
+- [Architecture](#architecture)
+- [Decisions and trade-offs](#decisions-and-trade-offs)
+- [Project structure](#project-structure)
+- [Screenshots](#screenshots)
+- [Cloud deployment](#cloud-deployment)
+- [Documentation](#documentation)
+- [Troubleshooting](#troubleshooting)
+- [Credits](#credits)
+
+---
+
+## Problem
+
+Course simulations produce rich KPI grids and signal lists, but sharing them usually means notebooks or static CSVs. Support and portfolio reviewers need:
+
+1. A **live URL** with consistent numbers (not a re-fit on every click).
+2. A **clear UX** between *trying* a threshold (preview) and *recording* it (Update + Ops).
+3. **Operator visibility** — last simulation, API trace, and request-rate charts without a second Grafana deployment.
+
+Signal Desk answers (1)–(3) from one committed artifact and one FastAPI process.
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Status
+
+**Portfolio-ready** — desk preview on drag, Update commit, six-point threshold grid (**0.55–0.60**), Ops overlay with in-app Grafana board.
+
+**Public deploy:** `main` push → Docker rebuild on [Render](https://signal-desk-c3dx.onrender.com) ([`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md), [`render.yaml`](render.yaml)). Artifact refresh is **local export → commit → push → deploy** (not on Render).
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Paths (read this first)
+
+Commands below assume you are in the **repository root** after cloning.
 
 | | |
-|---|---|
-| **Repository** | https://github.com/zakard114/signal-desk |
-| **Live demo** | https://signal-desk-c3dx.onrender.com |
-| **Course context** | [Stock Markets Analytics Zoomcamp](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp) — personal study materials @ `dd4cd5a` |
+|--|--|
+| **Your machine** | Whatever path you cloned into, e.g. `~/signal-desk` |
+| **Example used in this README** | `E:\IT_SPACES\AI\Projects\sma\us-equity-signals` (author’s Windows layout — **not required**) |
 
-Drag inputs to **preview** the desk (KPIs + Latest signals). **Update simulation** applies to the system (Ops, Recent runs). Red hint under the button: *Update simulation applies changes.*
+Replace the example `cd …` with your own clone path. Relative paths like `app/`, `artifacts/`, and `ops/` are the same everywhere.
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Recent updates
+
+**2026-11 — desk preview vs system commit**
+
+- Dragging threshold, notional, or fee **previews** KPIs and **Latest signals** from `GET /v1/threshold-grid` (including per-cutoff `latest_signals` when the artifact includes them).
+- **Update simulation** is the only path that hits simulation API for history, refreshes Inspector, and drives **Ops → Grafana** from live audit rows.
+- Red hint under the button when controls diverge from the last commit: *Update simulation applies changes.*
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Quick demo
+
+**Example:** open the [live demo](https://signal-desk-c3dx.onrender.com), drag threshold **0.55 → 0.60** (watch **Test trades** and signal row count), click **Update simulation**, then open **Ops → Grafana**.
+
+Step-by-step scripts: [`docs/DEMO_WALKTHROUGH.md`](docs/DEMO_WALKTHROUGH.md).
+
+[↑ Contents](#table-of-contents)
+
+---
 
 ## Features
 
-- **Web:** threshold slider on the artifact grid, simulation KPIs (preview on drag), latest signals table, client-side ticker filter (table only)
-- **API:** `/v1/threshold-grid`, `/v1/simulation?threshold=`, `/v1/signals/latest?threshold=`
+- **Web:** threshold slider on the artifact grid, simulation KPIs (preview on drag), latest signals table, client-side ticker filter (**Latest signals** only)
+- **API:** `/v1/threshold-grid`, `/v1/simulation?threshold=`, `/v1/signals/latest?threshold=`, `/health`, `/v1/meta`
 - **Ops:** HoldRisk-style overlay — **Inspector · Log · API · Grafana**; server board `GET /ops/board` (audit, rate/latency charts on the same process)
 
 No parquet in this repository; the cloud image serves committed `artifacts/latest.json` only.
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Quick start
+
+**Recommended:** run locally against the committed artifact (no export required for a first look).
+
+```powershell
+# Example path (replace with your clone root):
+cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals
+. E:\IT_SPACES\AI\scripts\use_e_drive.ps1   # optional: author Windows cache on E:
+pip install -r requirements.txt             # or use your venv
+uvicorn app.main:app --port 8080
+```
+
+Open http://127.0.0.1:8080/ — badge should show live API when `/v1/meta` loads.
+
+**Refresh artifact** (needs course parquet on your machine — not on Render):
+
+```powershell
+# After use_e_drive.ps1 and local parquet paths configured:
+python ops\export_artifacts.py
+# Commit artifacts/latest.json, push, redeploy Render if you want cloud to match.
+```
+
+`scripts/use_e_drive.ps1` is optional (author keeps caches on `E:`). Skip it if you use default cache locations.
+
+[↑ Contents](#table-of-contents)
+
+---
 
 ## Architecture
 
 ![Live path — Browser → FastAPI → artifacts/latest.json](docs/images/architecture/live-path-infographic-v1.jpg)
 
-**Live path:** Browser (`static/`) → Render FastAPI → read `artifacts/latest.json` · Ops tab → `GET /ops/board` on the same host (no separate Grafana server on Render).
+**Live path (infographic):** User → Render FastAPI → `static/` desk + Ops overlay → `GET /v1/*` and `GET /ops/board` → read `artifacts/latest.json` baked into the image. No separate Grafana server on Render.
 
-**Request path:** drag threshold → client preview from grid → **Update simulation** → `GET /v1/simulation` + `GET /v1/signals/latest`.
+Technical graph (same system, code-oriented):
 
-**Offline (E: only):** course parquet → `ops/export_artifacts.py` → refresh `latest.json` before commit.
+```mermaid
+flowchart TD
+    User["User / Reviewer"] --> Browser["Browser<br/>static/index.html + app.js"]
+    Browser --> Desk["Signal Desk<br/>threshold · Update simulation · KPIs · signals"]
+    Browser --> Ops["Ops overlay<br/>Inspector · Log · API · Grafana tab"]
+    Desk --> API["FastAPI app/main.py<br/>GET /v1/*"]
+    Ops --> Board["GET /ops/board<br/>app/audit.board_payload()"]
+    API --> Artifact[("artifacts/latest.json<br/>threshold grid 0.55–0.60 · baked in Docker")]
+    Board --> API
+    Export["Offline (E: only)<br/>parquet → export_artifacts.py"] -.-> Artifact
+    Render["Render web service<br/>signal-desk-c3dx.onrender.com"] --> API
 
-Full Mermaid and ASCII reference: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+    linkStyle default stroke:#d4a24c,stroke-width:1.5px
+
+    style User fill:#0a0e12,color:#d8dce3,stroke:#d4a24c
+    style Browser fill:#121820,color:#d8dce3,stroke:#d4a24c
+    style Desk fill:#0f1419,color:#d8dce3,stroke:#6dcca4
+    style Ops fill:#0f1419,color:#d8dce3,stroke:#6dcca4
+    style API fill:#3d3424,color:#d8dce3,stroke:#d4a24c
+    style Board fill:#121820,color:#d8dce3,stroke:#6dcca4
+    style Artifact fill:#1e3a5f,color:#d8dce3,stroke:#60a5fa
+    style Export fill:#0a0e12,color:#8b95a8,stroke:#64748b
+    style Render fill:#0a0e12,color:#d8dce3,stroke:#d4a24c
+```
+
+**Request path (short):** drag threshold → client preview from grid → **Update simulation** → `GET /v1/simulation` + `GET /v1/signals/latest` · Ops **Grafana** tab polls `GET /ops/board` on the same process.
+
+Extended Mermaid and ASCII: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Decisions and trade-offs
+
+- **Frozen artifact vs live training on Render:** cloud stays fast and cheap; numbers age until you re-export and redeploy. Trade-off: no “train once per visitor.”
+- **Preview on drag vs Update commit:** avoids flooding audit logs and makes Ops meaningful only after an explicit commit. Trade-off: users must click Update to refresh Grafana simulation counters.
+- **In-app Grafana tab vs hosted Grafana:** one Docker service, HoldRisk-style board from in-process audit. Trade-off: not a full Grafana deployment with external datasources.
+- **Six-point threshold grid only:** slider snaps to nearest artifact row; between-grid drags look flat until the nearest cutoff changes. Trade-off: simpler demo — use **0.55 vs 0.60** for obvious deltas.
+- **Ticker filter client-side:** filters **Latest signals** only; KPIs and Ops unchanged. Trade-off: filter does not call the API.
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Project structure
+
+```text
+app/                 # FastAPI, audit middleware, /ops/board
+static/              # Desk + Ops UI (index.html, app.js, app.css)
+ops/                 # export_artifacts.py, screenshot helpers
+artifacts/           # latest.json (committed; baked into Docker)
+docs/                # Architecture, Ops, walkthrough, images/
+Dockerfile           # Render image
+render.yaml          # Blueprint (service signal-desk)
+```
+
+[↑ Contents](#table-of-contents)
+
+---
 
 ## Screenshots
+
+### Desk (numbered callouts)
+
+Live desk on Render — drag preview, **Update simulation**, Recent runs, Latest signals.  
+https://signal-desk-c3dx.onrender.com
 
 ![Desk — numbered callouts](docs/images/desk/desk-annotated.png)
 
@@ -53,65 +236,75 @@ Full Mermaid and ASCII reference: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | 7 | Latest signals | Signal rows for the active threshold |
 | 8 | Ops | Inspector · Log · API · Grafana in the same window |
 
-### Ops overlay
+Plain capture: [`docs/images/desk/desk-after-update.png`](docs/images/desk/desk-after-update.png). Extended gallery: [`docs/PREVIEW.md`](docs/PREVIEW.md).
+
+### Ops overlay (Inspector · Log · API · Grafana)
 
 | Inspector | Log | API | Grafana tab |
 |:---:|:---:|:---:|:---:|
 | ![Inspector](docs/images/ops/ops-inspector.png) | ![Log](docs/images/ops/ops-log.png) | ![API](docs/images/ops/ops-api.png) | ![Grafana tab](docs/images/ops/ops-grafana.png) |
 
-More captures and re-annotate notes: [docs/PREVIEW.md](docs/PREVIEW.md).
+[↑ Contents](#table-of-contents)
 
-## Quick demo
+---
 
-**Example:** open the [live demo](https://signal-desk-c3dx.onrender.com), drag threshold **0.55 → 0.60** (watch **Test trades** and signal row count), click **Update simulation**, then open **Ops → Grafana**. Step-by-step: [Demo walkthrough](docs/DEMO_WALKTHROUGH.md).
+## Cloud deployment
 
-## Local
+**Official public face:** Render web service `signal-desk` ([`render.yaml`](render.yaml)).
 
-```powershell
-. E:\IT_SPACES\AI\scripts\use_e_drive.ps1
-cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\pip.exe install -r requirements.txt
-# refresh artifact (needs course parquet on E:)
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe ops\export_artifacts.py
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\uvicorn.exe app.main:app --port 8080
-```
-
-http://127.0.0.1:8080/
-
-## Deploy (Render)
-
-1. Connect this GitHub repo (`main` push → Docker rebuild on Render).
+1. Connect GitHub repo `zakard114/signal-desk`, branch `main`.
 2. **Web Service** → Environment **Docker** → `Dockerfile` at repo root.
-3. Health check: `/health`.
-4. Image includes `artifacts/latest.json`.
+3. Health check: `/health` (expect `artifact_exists: true`).
+4. **`main` push** triggers rebuild; wait until **Live**, then hard-refresh the desk if static assets look stale.
 
-`render.yaml` included for Blueprint deploy (service name `signal-desk`).
+Smoke after deploy:
 
-## Docs
+- `GET /v1/threshold-grid` → `"count": 6`
+- Desk **Update simulation** twice (e.g. 0.55 and 0.60) → **Ops → Grafana** shows non-zero Simulations
+
+Detail: [`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md).
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Documentation
 
 | Doc | Purpose |
 |-----|---------|
-| [docs/README.md](docs/README.md) | Documentation index |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Mermaid + live/offline paths |
-| [OPS.md](docs/OPS.md) | Ops overlay and `GET /ops/board` |
-| [DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md) | Which inputs change what |
-| [DEPLOY_RENDER.md](docs/DEPLOY_RENDER.md) | Render Blueprint / manual Docker |
-| [PREVIEW.md](docs/PREVIEW.md) | Screenshot pack (numbered desk, Ops) |
-| [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Mock vs live, slider, Render |
-| [NOTES.md](docs/NOTES.md) | Artifact model and scaling |
-| [LIP_LINKEDIN.md](docs/LIP_LINKEDIN.md) | Learning in Public drafts |
+| [`docs/README.md`](docs/README.md) | Documentation index |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Extended architecture |
+| [`docs/OPS.md`](docs/OPS.md) | Ops overlay and `GET /ops/board` |
+| [`docs/DEMO_WALKTHROUGH.md`](docs/DEMO_WALKTHROUGH.md) | Which inputs change what |
+| [`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md) | Render Blueprint / manual Docker |
+| [`docs/PREVIEW.md`](docs/PREVIEW.md) | Screenshot pack + annotate script |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Full symptom → fix checklist |
+| [`docs/NOTES.md`](docs/NOTES.md) | Artifact model and scaling |
+| [`docs/LIP_LINKEDIN.md`](docs/LIP_LINKEDIN.md) | Learning in Public drafts |
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Troubleshooting
+
+If the desk shows **UI preview (mock)**, KPIs never move on drag, or Ops Grafana stays at zero:
+
+1. **Cold start on Render** — wait 30–60s, reload. Check `GET /health` → `artifact_exists: true`.
+2. **Mock badge** — API did not load `/v1/meta` or `/v1/threshold-grid`. Fix: confirm deploy finished; artifact present in image (`503` if missing).
+3. **Slider “does nothing”** — you may be between grid points (artifact is **0.55–0.60** only). Jump **0.55 vs 0.60**; watch **Test trades** and signal row count, not CAGR alone.
+4. **Ops Grafana empty** — run **Update simulation** on the desk at least twice, then open **Ops → Grafana** (poll ~4s).
+5. **Stale cloud numbers** — re-run `ops/export_artifacts.py` locally, commit `artifacts/latest.json`, push, **Manual Deploy** on Render.
+
+Full symptoms, causes, and fixes: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
+
+[↑ Contents](#table-of-contents)
+
+---
 
 ## Credits
 
 - Curriculum and simulation methodology: [Stock Markets Analytics Zoomcamp](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp) (Modules 02–04).
-- Combined parquet (YFinance, TA features, FRED macro) is built locally per course materials—not stored here. To re-export artifacts, use `ops/export_artifacts.py` against your local parquet tree.
+- Combined parquet (YFinance, TA features, FRED macro) is built locally per course materials—not stored in this repo. Re-export with `ops/export_artifacts.py` against your local data tree.
 
-## Layout
-
-```
-app/           FastAPI
-static/        UI
-ops/           export_artifacts.py, screenshot helpers
-artifacts/     latest.json
-docs/          architecture, ops, images
-```
+[↑ Contents](#table-of-contents)
