@@ -96,12 +96,20 @@ const CHART_W = 640;
 const CHART_H = 180;
 const CHART_PAD = { l: 44, r: 12, t: 12, b: 26 };
 
-function chartGridParts(ceiling, innerW, innerH, padL, padT, width, padR) {
+function chartGridParts(ceiling, innerW, innerH, padL, padT, width, padR, gridOpts) {
+  const opts = gridOpts || {};
+  const ySuffix = opts.ySuffix || "";
   const parts = [];
   for (let tick = 0; tick <= 3; tick += 1) {
     const y = padT + innerH - (innerH * tick) / 3;
     const label = (ceiling * tick) / 3;
-    const text = ceiling >= 10 ? label.toFixed(0) : label.toFixed(2);
+    let text;
+    if (opts.axisMs) {
+      text = label >= 100 ? label.toFixed(0) : label >= 10 ? label.toFixed(0) : label.toFixed(1);
+    } else {
+      text = ceiling >= 10 ? label.toFixed(0) : label.toFixed(2);
+    }
+    text += ySuffix;
     parts.push(
       `<line x1="${padL}" y1="${y}" x2="${width - padR}" y2="${y}" stroke="${GRID}" stroke-width="1" />`
     );
@@ -148,6 +156,31 @@ function drawAreaChart(svg, seriesList, yMax) {
     parts.push(`<circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3.5" fill="${stroke}" />`);
   });
   svg.innerHTML = `<defs>${defs}</defs>${parts.join("")}`;
+}
+
+function drawLineChart(svg, seriesList, yMax, gridOpts) {
+  if (!svg) return;
+  const { l: padL, r: padR, t: padT, b: padB } = CHART_PAD;
+  const innerW = CHART_W - padL - padR;
+  const innerH = CHART_H - padT - padB;
+  const ceiling = yMax > 0 ? yMax : 1;
+  const parts = chartGridParts(ceiling, innerW, innerH, padL, padT, CHART_W, padR, gridOpts);
+  seriesList.forEach((seriesItem) => {
+    const values = seriesItem.values || [];
+    if (!values.length) return;
+    const stroke = seriesItem.color;
+    const pts = seriesPoints(values, innerW, innerH, padL, padT, ceiling);
+    const line = pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    parts.push(
+      `<polyline fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${line}" />`
+    );
+    pts.forEach((p, i) => {
+      if (values.length <= 12 || i === pts.length - 1) {
+        parts.push(`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${stroke}" />`);
+      }
+    });
+  });
+  svg.innerHTML = parts.join("");
 }
 
 function drawStepAreaChart(svg, values, stroke, yMax) {
@@ -267,23 +300,24 @@ function paintCharts(board) {
   const p99 = buckets.map((bucket) => Number(bucket.p99 || 0));
   let latMax = Math.max(...p95, ...p99, 0);
   const latSeries = [
-    { color: SEA, values: p95 },
+    { color: HOLD, values: p95 },
     { color: SAFFRON, values: p99 },
   ];
   const rawLat = (board.series && board.series.latency_ms) || [];
+  let latGridOpts = { axisMs: true, ySuffix: " ms" };
   if (latMax === 0 && rawLat.length) {
     latSeries.length = 0;
-    latSeries.push({ color: SAFFRON, values: rawLat.map(Number) });
+    latSeries.push({ color: HOLD, values: rawLat.map(Number) });
     latMax = Math.max(...rawLat, 1);
-    renderLegend("latency-legend", [{ color: SAFFRON, label: "Latency ms" }]);
+    renderLegend("latency-legend", [{ color: HOLD, label: "Latency (per request)" }]);
   } else {
     latMax = Math.max(latMax, 1);
     renderLegend("latency-legend", [
-      { color: SEA, label: "P95" },
+      { color: HOLD, label: "P95" },
       { color: SAFFRON, label: "P99" },
     ]);
   }
-  drawAreaChart(document.getElementById("chart-latency"), latSeries, latMax);
+  drawLineChart(document.getElementById("chart-latency"), latSeries, latMax, latGridOpts);
 
   const auditLat = (board.audit || []).map((r) => Number(r.latency_ms)).filter((v) => !Number.isNaN(v));
   drawHistogram(document.getElementById("chart-latency-hist"), auditLat, SAFFRON);
@@ -546,7 +580,7 @@ function refreshInspector() {
     title.className = "entry-title";
   } else {
     title.textContent = `Simulation @ ${sim.threshold_selected != null ? sim.threshold_selected.toFixed(2) : "—"}`;
-    title.className = "entry-title ok";
+    title.className = "entry-title";
   }
 
   const set = (id, text) => {

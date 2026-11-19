@@ -11,11 +11,10 @@ Signal Desk uses the same **in-app Ops overlay** pattern as the ML midterm HoldR
 
 | Tab | What it shows |
 |-----|----------------|
-| **Inspector** | Last simulation: mode (LIVE/MOCK), health, threshold, pred column, CAGR, trades, P&L, signal count, artifact meta. Color: green LIVE / amber MOCK; health ok vs bad. |
-| **Log** | Browser-session log of API calls (method, path, status, latency). Green 2xx, red 4xx/5xx, blue 3xx. |
+| **Inspector** | Last simulation: mode (LIVE/MOCK), health, threshold, pred column, CAGR, trades, P&L, signal count, artifact meta. Panel title uses default text color; **Mode** green LIVE / amber MOCK; **Health** ok vs bad; **CAGR** saffron. |
+| **Log** | Session API calls; **status column only** green (2xx) or red (4xx+); path/time muted. |
 | **API** | Route table with **Try** (uses desk threshold). Sample URLs follow the slider. Last JSON response below. OpenAPI `/docs` linked as advanced. |
-| **Grafana** | Server **`GET /ops/board`**: step **rps** (sea area), **P95/P99** latency areas, **latency histogram**, CAGR area, status bars, audit table (4s poll). Charts use SVG gradients (revert: git checkout `e36c460` — `static/app.js` chart block). |
-| **Log** | Session API calls; **status column only** green (2xx) or red (4xx+); path/time muted like API tab. |
+| **Grafana** | Server **`GET /ops/board`**: step **rps** (area), **P95/P99** latency **lines** (ms Y-axis), **latency histogram**, CAGR area, status bars, audit table (4s poll). Static assets use `?v=` cache bust on `index.html`. |
 
 ## Backend: audit + board
 

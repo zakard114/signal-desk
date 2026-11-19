@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/static/app.css" />
+    <link rel="stylesheet" href="/static/app.css?v=20261119-ops" />
   </head>
   <body class="mode-desk">
     <div class="chrome">
@@ -179,7 +179,7 @@
             <div class="eyebrow">Grafana</div>
             <h2 class="entry-title">Request board</h2>
             <p class="note" id="grafana-status">
-              Request rate by HTTP status, P95/P99 latency, simulation CAGR trail, and server audit. Green = 2xx. Amber = other. Red = errors. No external Grafana server.
+              Request rate (rps), P95/P99 latency lines (ms), latency histogram, simulation CAGR trail, and server audit. No external Grafana server.
             </p>
             <div class="metrics" id="board-metrics">
               <div class="metric"><span class="m-label">Requests</span><strong id="m-requests">0</strong></div>
@@ -242,6 +242,6 @@
       </section>
     </div>
 
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v=20261119-ops"></script>
   </body>
 </html>
