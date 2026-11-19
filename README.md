@@ -4,8 +4,9 @@ US equity ML signals — FastAPI + ledger UI over frozen simulation artifacts.
 
 | | |
 |---|---|
-| **Live demo** | See *Deploy* below — set README URL after first Render deploy |
-| **Capstone pipeline** | [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) (course graded @ `dd4cd5a`) |
+| **Repository** | https://github.com/zakard114/signal-desk |
+| **Live demo** | Deploy on Render (Dockerfile) — add URL here after first deploy |
+| **Capstone pipeline** | [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) (course @ `dd4cd5a`) |
 
 ## Features
 
