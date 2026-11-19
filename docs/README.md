@@ -2,6 +2,7 @@
 
 | Doc | Purpose |
 |-----|---------|
+| [PREVIEW.md](PREVIEW.md) | **Draft README preview** — hero, architecture, numbered desk, Ops captures |
 | [DEPLOY_RENDER.md](DEPLOY_RENDER.md) | Render Blueprint / manual Docker deploy |
 | [OPS.md](OPS.md) | Ops overlay, Grafana tab, `GET /ops/board` |
 | [DEMO_WALKTHROUGH.md](DEMO_WALKTHROUGH.md) | Which inputs change KPIs (threshold, notional, filter) |

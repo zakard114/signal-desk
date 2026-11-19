@@ -14,7 +14,7 @@ The artifact stores **six cutoffs only**: **0.55, 0.56, 0.57, 0.58, 0.59, 0.60**
 | **0.56** | 2780 | 9,897 | 1.101 | 2 (no RELIANCE) |
 | **0.60** | 745 | 2,531 | 1.049 | 1 row |
 
-**Steps:** set slider **0.55** → **Update simulation** → note **Test trades** (KPIs do not change until you click the button). Move to **0.60** → **Update** again. Each click appends a line under **Recent runs**. Trades should drop sharply; CAGR changes only in the third decimal (easy to miss — use **Test trades** as the main visual).
+**Steps:** drag **0.55 → 0.60** — KPIs and **Latest signals** preview on the desk; red hint under the button: *Update simulation applies changes.* Click **Update** to apply to the system (Ops, Recent runs). Each commit appends one **Recent runs** line. Trades should drop sharply; watch the signals table row count too.
 
 ## 2. Trade size (USD)
 
@@ -36,7 +36,7 @@ Weak effect on P&L (heuristic fee factor). Do not expect large KPI jumps; use th
 
 ## 4. Ticker filter
 
-Filters the **signals table only**; KPI cards stay the same. Try `RELIANCE` at 0.55, then `ZZZZ` for empty table.
+Substring filter on the **Latest signals** table only (client-side). Does not change KPIs or Ops. After **Update** at 0.55, try `RELIANCE`, then `ZZZZ` for an empty table.
 
 ## 5. Ops + Grafana (prove server activity)
 

@@ -10,10 +10,45 @@ const MOCK_SIGNALS = [
   { date: "2026-09-18", ticker: "SBIN.NS", ticker_type: "INDIA" },
 ];
 
+const MOCK_SIGNALS_ONE = [MOCK_SIGNALS[0]];
+
+const MOCK_ARTIFACT_GRID = [
+  {
+    threshold: 0.55,
+    test_trades: 3756,
+    net_pnl_usd: 12983.6,
+    assumed_capital_usd: 21000,
+    cagr_approx: 1.128,
+    pred_column: "pred_rf_0.55",
+    latest_signals: MOCK_SIGNALS,
+  },
+  {
+    threshold: 0.57,
+    test_trades: 3100,
+    net_pnl_usd: 11820,
+    assumed_capital_usd: 19500,
+    cagr_approx: 1.12,
+    pred_column: "pred_rf_0.57",
+    latest_signals: MOCK_SIGNALS.slice(0, 2),
+  },
+  {
+    threshold: 0.6,
+    test_trades: 2400,
+    net_pnl_usd: 9500,
+    assumed_capital_usd: 18000,
+    cagr_approx: 1.095,
+    pred_column: "pred_rf_0.60",
+    latest_signals: MOCK_SIGNALS_ONE,
+  },
+];
+
 let state = {
   meta: { strategy: "pred_rf_0.55", generated_at: "—" },
   defaults: { trade_notional_usd: 100, fee_rate: 0.002 },
   thresholdGrid: [],
+  artifactGrid: [],
+  deskSignals: [],
+  committed: null,
   useApi: false,
   health: null,
   lastSim: null,
@@ -517,12 +552,21 @@ async function loadFromApi() {
   state.useApi = true;
   const g = gridRes.grid || [];
   if (g.length > 0) {
-    state.thresholdGrid = g.map((row) => ({
+    state.artifactGrid = g.map((row) => ({
       threshold: row.threshold,
       test_trades: row.test_trades,
       net_pnl_usd: row.net_pnl_usd,
       assumed_capital_usd: row.assumed_capital_usd,
       cagr_approx: row.cagr_approx,
+      pred_column: row.pred_column || `pred_rf_${Number(row.threshold).toFixed(2)}`,
+      latest_signals: row.latest_signals || [],
+    }));
+    state.thresholdGrid = state.artifactGrid.map(({ threshold, test_trades, net_pnl_usd, assumed_capital_usd, cagr_approx }) => ({
+      threshold,
+      test_trades,
+      net_pnl_usd,
+      assumed_capital_usd,
+      cagr_approx,
     }));
   }
   if (gridRes.defaults) state.defaults = gridRes.defaults;
@@ -532,6 +576,7 @@ async function loadFromApi() {
 function loadMockOnly() {
   state.useApi = false;
   state.meta = { strategy: "pred_rf_0.55", generated_at: new Date().toISOString() };
+  state.artifactGrid = MOCK_ARTIFACT_GRID;
   state.thresholdGrid = MOCK_GRID;
 }
 
@@ -544,8 +589,12 @@ async function fetchRun(threshold) {
   return { sim, signals: sig.signals || [] };
 }
 
-function nearestFromGrid(threshold) {
-  const grid = state.thresholdGrid.length ? state.thresholdGrid : MOCK_GRID;
+function artifactRows() {
+  return state.artifactGrid.length ? state.artifactGrid : MOCK_ARTIFACT_GRID;
+}
+
+function nearestGridRow(threshold) {
+  const grid = artifactRows();
   let best = grid[0];
   let bestDist = Math.abs(threshold - best.threshold);
   for (const row of grid) {
@@ -555,11 +604,46 @@ function nearestFromGrid(threshold) {
       bestDist = d;
     }
   }
+  return best;
+}
+
+function nearestFromGrid(threshold) {
+  const best = nearestGridRow(threshold);
   return {
-    ...best,
+    threshold: best.threshold,
+    test_trades: best.test_trades,
+    net_pnl_usd: best.net_pnl_usd,
+    assumed_capital_usd: best.assumed_capital_usd,
+    cagr_approx: best.cagr_approx,
     threshold_selected: threshold,
-    pred_column: `pred_rf_${threshold.toFixed(2)}`,
+    pred_column: best.pred_column || `pred_rf_${threshold.toFixed(2)}`,
   };
+}
+
+function readControlsSnapshot() {
+  const { threshold, notional, fee, tickerFilter } = readControls();
+  return { threshold, notional, fee, tickerFilter };
+}
+
+function controlsDirty() {
+  if (!state.committed) return false;
+  const c = readControls();
+  const k = state.committed;
+  return (
+    Math.abs(c.threshold - k.threshold) > 0.0001 ||
+    Math.abs(c.notional - k.notional) > 0.0001 ||
+    Math.abs(c.fee - k.fee) > 0.0000001
+  );
+}
+
+function setPendingHint(visible) {
+  const el = document.getElementById("desk-pending-hint");
+  if (el) el.hidden = !visible;
+}
+
+function markCommitted() {
+  state.committed = readControlsSnapshot();
+  setPendingHint(false);
 }
 
 function pushRunHistory(sim, threshold) {
@@ -595,7 +679,8 @@ function renderRunHistory() {
     .join("");
 }
 
-function renderKpis(sim) {
+function renderKpis(sim, opts = {}) {
+  const { flash = true } = opts;
   const pnl = sim.net_pnl_usd;
   const pnlClass =
     pnl != null && !Number.isNaN(Number(pnl)) && Number(pnl) < 0 ? "kpi-pnl-neg" : "kpi-pnl-pos";
@@ -612,7 +697,23 @@ function renderKpis(sim) {
         `<div class="kpi flash"><label>${label}</label><div class="value ${valueClass}">${value}</div></div>`
     )
     .join("");
-  window.setTimeout(() => el.querySelectorAll(".kpi").forEach((k) => k.classList.remove("flash")), 400);
+  if (flash) {
+    window.setTimeout(() => el.querySelectorAll(".kpi").forEach((k) => k.classList.remove("flash")), 400);
+  }
+}
+
+function previewDesk() {
+  const { threshold, notional, fee, tickerFilter } = readControls();
+  const row = nearestGridRow(threshold);
+  const sim = scaleSimulation(nearestFromGrid(threshold), notional, fee);
+  renderKpis(sim, { flash: false });
+  state.deskSignals = row.latest_signals || [];
+  state.lastSignalCount = renderSignals(state.deskSignals, tickerFilter);
+  const meta = document.getElementById("run-meta");
+  if (meta) {
+    meta.textContent = `Strategy ${sim.pred_column || "—"} · artifact ${state.meta.generated_at || "—"}`;
+  }
+  setPendingHint(controlsDirty());
 }
 
 function renderSignals(rows, filter) {
@@ -854,7 +955,7 @@ async function runSimulation(opts = {}) {
     } else {
       await new Promise((r) => setTimeout(r, 350));
       sim = scaleSimulation(nearestFromGrid(threshold), notional, fee);
-      signals = MOCK_SIGNALS;
+      signals = nearestGridRow(threshold).latest_signals || MOCK_SIGNALS;
       logApi({
         method: "—",
         path: "mock simulation",
@@ -865,18 +966,21 @@ async function runSimulation(opts = {}) {
     }
   } catch (e) {
     sim = scaleSimulation(nearestFromGrid(threshold), notional, fee);
-    signals = MOCK_SIGNALS;
+    signals = nearestGridRow(threshold).latest_signals || MOCK_SIGNALS;
     console.warn(e);
   }
 
   state.lastSim = sim;
   document.getElementById("run-meta").textContent =
     `Strategy ${sim.pred_column || "—"} · artifact ${state.meta.generated_at || "—"}`;
-  renderKpis(sim);
+  renderKpis(sim, { flash: true });
   if (recordHistory) {
     pushRunHistory(sim, threshold);
   }
+  state.deskSignals = signals;
   state.lastSignalCount = renderSignals(signals, tickerFilter);
+  markCommitted();
+  syncApiSample();
   refreshInspector();
   refreshBoard().catch(() => {});
   results.classList.remove("loading");
@@ -887,23 +991,19 @@ async function runSimulation(opts = {}) {
 function bindUi() {
   document.getElementById("threshold").addEventListener("input", () => {
     syncThresholdLabel();
-    syncApiSample();
+    previewDesk();
+  });
+  document.getElementById("notional").addEventListener("input", () => {
+    previewDesk();
+  });
+  document.getElementById("fee").addEventListener("input", () => {
+    previewDesk();
   });
   document.getElementById("btn-run").addEventListener("click", () => runSimulation({ recordHistory: true }));
   document.getElementById("btn-reset").addEventListener("click", () => resetDeskInputs());
   document.getElementById("ticker-filter").addEventListener("input", () => {
-    const { threshold, tickerFilter } = readControls();
-    if (state.useApi) {
-      fetchJson(`/v1/signals/latest?threshold=${threshold}`)
-        .then((d) => {
-          state.lastSignalCount = renderSignals(d.signals, tickerFilter);
-          refreshInspector();
-        })
-        .catch(() => renderSignals(MOCK_SIGNALS, tickerFilter));
-    } else {
-      state.lastSignalCount = renderSignals(MOCK_SIGNALS, tickerFilter);
-      refreshInspector();
-    }
+    const { tickerFilter } = readControls();
+    state.lastSignalCount = renderSignals(state.deskSignals, tickerFilter);
   });
 }
 

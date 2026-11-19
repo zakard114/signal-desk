@@ -1,5 +1,7 @@
 # Signal Desk
 
+![Signal Desk — US equity signals hero](docs/images/readme-hero-banner.jpg)
+
 US equity ML signals — FastAPI + ledger UI over frozen simulation artifacts.
 
 | | |
@@ -9,13 +11,23 @@ US equity ML signals — FastAPI + ledger UI over frozen simulation artifacts.
 | **Capstone pipeline** | [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) (course @ `dd4cd5a`) |
 | **Try inputs** | [Demo walkthrough](docs/DEMO_WALKTHROUGH.md) (threshold 0.55 vs 0.60, notional, Ops) |
 
+Drag inputs to **preview** the desk (KPIs + Latest signals). **Update simulation** applies to the system (Ops, Recent runs).
+
 ## Features
 
-- Web: threshold slider (**0.55–0.60** grid), simulation KPIs, latest signals table
+- Web: threshold slider (**0.55–0.60** grid), simulation KPIs (preview on drag), latest signals table
 - API: `/v1/threshold-grid`, `/v1/simulation?threshold=`, `/v1/signals/latest?threshold=`
-- Ops: HoldRisk-style overlay — **Inspector · Log · API · Grafana**; server board `GET /ops/board` (audit, rate/latency/CAGR charts)
+- Ops: HoldRisk-style overlay — **Inspector · Log · API · Grafana**; server board `GET /ops/board` (audit, rate/latency charts)
 
 No parquet in this repository; cloud serves `artifacts/latest.json` only.
+
+## Architecture
+
+See [Architecture](docs/ARCHITECTURE.md) (infographic + Mermaid). **Request path:** threshold → **Update simulation** → `GET /v1/simulation` + signals; Ops Grafana tab → `GET /ops/board` on the same host (no separate Grafana server on Render).
+
+## Screenshots
+
+Numbered desk callouts and Ops captures: [docs/PREVIEW.md](docs/PREVIEW.md).
 
 ## Local
 
@@ -49,8 +61,7 @@ http://127.0.0.1:8080/
 - [Learning in Public (LinkedIn)](docs/LIP_LINKEDIN.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Notes](docs/NOTES.md)
-
-Optional README screenshots: see [LIP_LINKEDIN.md](docs/LIP_LINKEDIN.md#readme-screenshots-optional).
+- [README preview pack](docs/PREVIEW.md) — hero, annotated UI, Ops shots
 
 ## Credits
 

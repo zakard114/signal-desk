@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/static/app.css?v=20261119-deskux" />
+    <link rel="stylesheet" href="/static/app.css?v=20261119-commit" />
   </head>
   <body class="mode-desk">
     <div class="chrome">
@@ -42,8 +42,8 @@
             </label>
           <input id="threshold" type="range" min="0.5" max="0.65" step="0.01" value="0.55" />
           <p class="field-hint">
-            Drag threshold to choose a cutoff (artifact grid 0.55–0.60). KPIs update when you click
-            <strong>Update simulation</strong>. Compare runs in Recent runs below.
+            Drag inputs to preview the desk. Click <strong>Update simulation</strong> to apply to the
+            system (Ops, Recent runs).
           </p>
         </div>
           <div class="field">
@@ -62,6 +62,9 @@
             <button type="button" class="btn-primary" id="btn-run">Update simulation</button>
             <button type="button" class="btn-reset" id="btn-reset">Reset inputs</button>
           </div>
+          <p class="desk-pending-hint" id="desk-pending-hint" hidden>
+            Update simulation applies changes.
+          </p>
         </aside>
 
         <main class="panel results" id="results">
@@ -253,6 +256,6 @@
       </section>
     </div>
 
-    <script src="/static/app.js?v=20261119-deskux"></script>
+    <script src="/static/app.js?v=20261119-commit"></script>
   </body>
 </html>

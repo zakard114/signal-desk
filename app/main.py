@@ -74,7 +74,15 @@ def threshold_grid():
     return {
         "default_threshold": data.get("default_threshold", 0.55),
         "defaults": data.get("defaults", {}),
-        "grid": [{**{"threshold": g["threshold"]}, **g.get("simulation", {})} for g in grid],
+        "grid": [
+            {
+                "threshold": g["threshold"],
+                "pred_column": g.get("pred_column"),
+                **g.get("simulation", {}),
+                "latest_signals": g.get("latest_signals") or [],
+            }
+            for g in grid
+        ],
         "count": len(grid),
     }
 

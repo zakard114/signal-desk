@@ -224,6 +224,13 @@ input[type="text"]:focus {
   transition: opacity 0.2s ease;
 }
 
+.desk-pending-hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #e85858;
+}
+
 .kpis {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
