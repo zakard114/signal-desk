@@ -231,21 +231,9 @@ Plain capture: [`docs/images/desk/desk-after-update.png`](docs/images/desk/desk-
 
 ### Ops overlay (Inspector · Log · API · Grafana)
 
-**Inspector** — last simulation snapshot, artifact meta, CAGR.
-
-![Inspector — full width](docs/images/ops/ops-inspector.png)
-
-**Log** — API calls from this browser session.
-
-![Log — full width](docs/images/ops/ops-log.png)
-
-**API** — routes, **Try**, sample responses ([OpenAPI `/docs`](https://signal-desk-c3dx.onrender.com/docs)).
-
-![API — full width](docs/images/ops/ops-api.png)
-
-**Grafana tab** — in-process board from `GET /ops/board` (not a separate Grafana server on Render).
-
-![Grafana tab — full width](docs/images/ops/ops-grafana.png)
+| Inspector | Log | API | Grafana tab |
+|:---:|:---:|:---:|:---:|
+| ![Inspector](docs/images/ops/ops-inspector.png) | ![Log](docs/images/ops/ops-log.png) | ![API](docs/images/ops/ops-api.png) | ![Grafana tab](docs/images/ops/ops-grafana.png) |
 
 [↑ Contents](#table-of-contents)
 
