@@ -1,6 +1,6 @@
-# Signal Desk — documentation preview (draft)
+# Signal Desk — screenshot pack
 
-**Status:** Screenshot + architecture pack; hero and summary merged into root `README.md`.  
+**Status:** Folded into root [README](../README.md) (hero, architecture infographic, desk + Ops). This file is the extended gallery and annotation notes.  
 **Captured from:** https://signal-desk-c3dx.onrender.com/?v=20261119-deskux (2026-11-19).
 
 ---
@@ -96,6 +96,6 @@ E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe ops\annotate_desk_preview.p
 
 ---
 
-## Next step
+## Asset refresh
 
-Fold this content into root `README.md` (hero, Architecture, Screenshots sections) and link from [docs/README.md](./README.md). Replace `.jpg` hero/infographic with refined exports if you redraw in Figma.
+Replace `.jpg` hero/infographic with refined exports if you redraw in Figma. Re-capture from Render after UI changes; run `ops/annotate_desk_preview.py` for numbered callouts.

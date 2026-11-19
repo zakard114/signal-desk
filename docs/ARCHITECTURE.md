@@ -1,4 +1,6 @@
-# Architecture (portfolio demo)
+# Architecture
+
+Summary infographic and request path also appear on the [repository README](../README.md#architecture).
 
 ![Live path — Browser → FastAPI → artifacts/latest.json](images/architecture/live-path-infographic-v1.jpg)
 
