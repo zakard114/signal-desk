@@ -85,47 +85,132 @@ function statusColor(status) {
   return SAFFRON;
 }
 
-function statusLogClass(status) {
-  const code = Number(status);
-  if (Number.isNaN(code)) return "mock";
-  if (code >= 500) return "status-5xx";
-  if (code >= 400) return "status-4xx";
-  if (code >= 300) return "status-3xx";
-  if (code >= 200) return "status-2xx";
-  return "err";
+function logStatusClass(row) {
+  if (row.method === "—") return "log-status-warn";
+  const code = Number(row.status);
+  if (row.ok === false || code >= 400) return "log-status-err";
+  return "log-status-ok";
 }
 
-function drawSeries(svg, series, yMax) {
-  if (!svg) return;
-  const width = 640;
-  const height = 180;
-  const padL = 36;
-  const padB = 22;
-  const padT = 8;
-  const padR = 8;
-  const innerW = width - padL - padR;
-  const innerH = height - padT - padB;
-  const ceiling = yMax > 0 ? yMax : 1;
+const CHART_W = 640;
+const CHART_H = 180;
+const CHART_PAD = { l: 44, r: 12, t: 12, b: 26 };
+
+function chartGridParts(ceiling, innerW, innerH, padL, padT, width, padR) {
   const parts = [];
   for (let tick = 0; tick <= 3; tick += 1) {
     const y = padT + innerH - (innerH * tick) / 3;
     const label = (ceiling * tick) / 3;
     const text = ceiling >= 10 ? label.toFixed(0) : label.toFixed(2);
-    parts.push(`<line x1="${padL}" y1="${y}" x2="${width - padR}" y2="${y}" stroke="${GRID}" />`);
     parts.push(
-      `<text x="${padL - 6}" y="${y + 4}" fill="${AXIS}" font-size="11" text-anchor="end">${text}</text>`
+      `<line x1="${padL}" y1="${y}" x2="${width - padR}" y2="${y}" stroke="${GRID}" stroke-width="1" />`
+    );
+    parts.push(
+      `<text x="${padL - 8}" y="${y + 4}" fill="${AXIS}" font-size="10" text-anchor="end">${text}</text>`
     );
   }
-  series.forEach((seriesItem) => {
+  return parts;
+}
+
+function seriesPoints(values, innerW, innerH, padL, padT, ceiling) {
+  if (!values.length) return [];
+  const denom = Math.max(values.length - 1, 1);
+  return values.map((value, index) => {
+    const x = padL + (innerW * index) / denom;
+    const y = padT + innerH - (innerH * Math.min(Number(value), ceiling)) / ceiling;
+    return { x, y };
+  });
+}
+
+function drawAreaChart(svg, seriesList, yMax) {
+  if (!svg) return;
+  const { l: padL, r: padR, t: padT, b: padB } = CHART_PAD;
+  const innerW = CHART_W - padL - padR;
+  const innerH = CHART_H - padT - padB;
+  const baseY = padT + innerH;
+  const ceiling = yMax > 0 ? yMax : 1;
+  const parts = chartGridParts(ceiling, innerW, innerH, padL, padT, CHART_W, padR);
+  let defs = "";
+  seriesList.forEach((seriesItem, si) => {
     const values = seriesItem.values || [];
     if (!values.length) return;
-    const points = values.map((value, index) => {
-      const x = padL + (values.length === 1 ? innerW / 2 : (innerW * index) / (values.length - 1));
-      const y = padT + innerH - (innerH * Math.min(value, ceiling)) / ceiling;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    });
+    const gradId = `area-${svg.id || "c"}-${si}`;
+    const stroke = seriesItem.color;
+    defs += `<linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${stroke}" stop-opacity="0.5"/><stop offset="100%" stop-color="${stroke}" stop-opacity="0.03"/></linearGradient>`;
+    const pts = seriesPoints(values, innerW, innerH, padL, padT, ceiling);
+    const line = pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    const poly = `${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")} ${pts[pts.length - 1].x.toFixed(1)},${baseY} ${pts[0].x.toFixed(1)},${baseY}`;
+    parts.push(`<polygon points="${poly}" fill="url(#${gradId})" />`);
     parts.push(
-      `<polyline fill="none" stroke="${seriesItem.color}" stroke-width="2" points="${points.join(" ")}" />`
+      `<polyline fill="none" stroke="${stroke}" stroke-width="2.25" stroke-linejoin="round" points="${line}" />`
+    );
+    const last = pts[pts.length - 1];
+    parts.push(`<circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3.5" fill="${stroke}" />`);
+  });
+  svg.innerHTML = `<defs>${defs}</defs>${parts.join("")}`;
+}
+
+function drawStepAreaChart(svg, values, stroke, yMax) {
+  if (!svg) return;
+  if (!values.length) {
+    svg.innerHTML = "";
+    return;
+  }
+  const { l: padL, r: padR, t: padT, b: padB } = CHART_PAD;
+  const innerW = CHART_W - padL - padR;
+  const innerH = CHART_H - padT - padB;
+  const baseY = padT + innerH;
+  const ceiling = yMax > 0 ? yMax : 1;
+  const gradId = `step-${svg.id || "r"}`;
+  const parts = chartGridParts(ceiling, innerW, innerH, padL, padT, CHART_W, padR);
+  const n = values.length;
+  const slot = innerW / Math.max(n, 1);
+  let lineD = "";
+  let areaD = `M ${padL} ${baseY}`;
+  values.forEach((value, index) => {
+    const y = padT + innerH - (innerH * Math.min(Number(value), ceiling)) / ceiling;
+    const x0 = padL + index * slot;
+    const x1 = padL + (index + 1) * slot;
+    if (index === 0) lineD += `M ${x0} ${y}`;
+    else lineD += ` H ${x0} V ${y}`;
+    lineD += ` H ${x1}`;
+    areaD += ` L ${x0} ${baseY} L ${x0} ${y} L ${x1} ${y}`;
+  });
+  areaD += ` L ${padL + innerW} ${baseY} Z`;
+  const defs = `<linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${stroke}" stop-opacity="0.55"/><stop offset="100%" stop-color="${stroke}" stop-opacity="0.02"/></linearGradient>`;
+  parts.push(`<path d="${areaD}" fill="url(#${gradId})" />`);
+  parts.push(`<path fill="none" stroke="${stroke}" stroke-width="2.25" d="${lineD}" />`);
+  svg.innerHTML = `<defs>${defs}</defs>${parts.join("")}`;
+}
+
+function drawHistogram(svg, values, color) {
+  if (!svg) return;
+  const { l: padL, r: padR, t: padT, b: padB } = CHART_PAD;
+  const innerW = CHART_W - padL - padR;
+  const innerH = CHART_H - padT - padB;
+  const baseY = padT + innerH;
+  const nums = values.map(Number).filter((v) => !Number.isNaN(v) && v >= 0);
+  if (!nums.length) {
+    svg.innerHTML = "";
+    return;
+  }
+  const bins = 14;
+  const maxLat = Math.max(...nums, 1);
+  const counts = Array(bins).fill(0);
+  nums.forEach((v) => {
+    const idx = Math.min(bins - 1, Math.floor((v / maxLat) * bins));
+    counts[idx] += 1;
+  });
+  const ceiling = Math.max(...counts, 1);
+  const parts = chartGridParts(ceiling, innerW, innerH, padL, padT, CHART_W, padR);
+  const slot = innerW / bins;
+  const barW = slot * 0.72;
+  counts.forEach((count, index) => {
+    const h = (innerH * count) / ceiling;
+    const x = padL + index * slot + (slot - barW) / 2;
+    const y = baseY - h;
+    parts.push(
+      `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(h, 0).toFixed(1)}" rx="2" fill="${color}" fill-opacity="0.92" />`
     );
   });
   svg.innerHTML = parts.join("");
@@ -133,25 +218,11 @@ function drawSeries(svg, series, yMax) {
 
 function drawBars(svg, items, yMax) {
   if (!svg) return;
-  const width = 640;
-  const height = 180;
-  const padL = 36;
-  const padB = 28;
-  const padT = 8;
-  const padR = 8;
-  const innerW = width - padL - padR;
-  const innerH = height - padT - padB;
+  const { l: padL, r: padR, t: padT, b: padB } = CHART_PAD;
+  const innerW = CHART_W - padL - padR;
+  const innerH = CHART_H - padT - padB;
   const ceiling = yMax > 0 ? yMax : 1;
-  const parts = [];
-  for (let tick = 0; tick <= 3; tick += 1) {
-    const y = padT + innerH - (innerH * tick) / 3;
-    const label = (ceiling * tick) / 3;
-    const text = ceiling >= 10 ? label.toFixed(0) : label.toFixed(1);
-    parts.push(`<line x1="${padL}" y1="${y}" x2="${width - padR}" y2="${y}" stroke="${GRID}" />`);
-    parts.push(
-      `<text x="${padL - 6}" y="${y + 4}" fill="${AXIS}" font-size="11" text-anchor="end">${text}</text>`
-    );
-  }
+  const parts = chartGridParts(ceiling, innerW, innerH, padL, padT, CHART_W, padR);
   const n = Math.max(items.length, 1);
   const slot = innerW / n;
   const barW = Math.min(72, slot * 0.55);
@@ -160,10 +231,10 @@ function drawBars(svg, items, yMax) {
     const x = padL + slot * index + (slot - barW) / 2;
     const y = padT + innerH - h;
     parts.push(
-      `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(h, 0).toFixed(1)}" fill="${item.color}" />`
+      `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(h, 0).toFixed(1)}" rx="3" fill="${item.color}" fill-opacity="0.9" />`
     );
     parts.push(
-      `<text x="${(x + barW / 2).toFixed(1)}" y="${height - 8}" fill="${AXIS}" font-size="11" text-anchor="middle">${item.label}</text>`
+      `<text x="${(x + barW / 2).toFixed(1)}" y="${CHART_H - 8}" fill="${AXIS}" font-size="10" text-anchor="middle">${item.label}</text>`
     );
   });
   svg.innerHTML = parts.join("");
@@ -185,24 +256,12 @@ function renderLegend(id, items) {
 
 function paintCharts(board) {
   const buckets = board.buckets || [];
-  const statuses = [];
-  buckets.forEach((bucket) => {
-    Object.keys(bucket.rates || {}).forEach((status) => {
-      if (!statuses.includes(status)) statuses.push(status);
-    });
-  });
-  statuses.sort();
-  const rateSeries = statuses.map((status) => ({
-    color: statusColor(status),
-    label: status,
-    values: buckets.map((bucket) => Number((bucket.rates || {})[status] || 0)),
-  }));
-  const rateMax = rateSeries.reduce((max, series) => Math.max(max, ...series.values, 0), 0);
-  drawSeries(document.getElementById("chart-rate"), rateSeries, rateMax);
-  renderLegend(
-    "rate-legend",
-    rateSeries.map((series) => ({ color: series.color, label: "HTTP " + series.label }))
+  const rateValues = buckets.map((bucket) =>
+    Object.values(bucket.rates || {}).reduce((sum, v) => sum + Number(v || 0), 0)
   );
+  const rateMax = Math.max(...rateValues, 0.01);
+  drawStepAreaChart(document.getElementById("chart-rate"), rateValues, SEA, rateMax);
+  renderLegend("rate-legend", [{ color: SEA, label: "Total rps (all statuses)" }]);
 
   const p95 = buckets.map((bucket) => Number(bucket.p95 || 0));
   const p99 = buckets.map((bucket) => Number(bucket.p99 || 0));
@@ -214,20 +273,25 @@ function paintCharts(board) {
   const rawLat = (board.series && board.series.latency_ms) || [];
   if (latMax === 0 && rawLat.length) {
     latSeries.length = 0;
-    latSeries.push({ color: SEA, values: rawLat.map(Number) });
-    latMax = Math.max(...rawLat, 0);
-    renderLegend("latency-legend", [{ color: SEA, label: "Latency ms" }]);
+    latSeries.push({ color: SAFFRON, values: rawLat.map(Number) });
+    latMax = Math.max(...rawLat, 1);
+    renderLegend("latency-legend", [{ color: SAFFRON, label: "Latency ms" }]);
   } else {
+    latMax = Math.max(latMax, 1);
     renderLegend("latency-legend", [
       { color: SEA, label: "P95" },
       { color: SAFFRON, label: "P99" },
     ]);
   }
-  drawSeries(document.getElementById("chart-latency"), latSeries, latMax);
+  drawAreaChart(document.getElementById("chart-latency"), latSeries, latMax);
+
+  const auditLat = (board.audit || []).map((r) => Number(r.latency_ms)).filter((v) => !Number.isNaN(v));
+  drawHistogram(document.getElementById("chart-latency-hist"), auditLat, SAFFRON);
+  renderLegend("lat-hist-legend", [{ color: SAFFRON, label: `Recent requests (n=${auditLat.length})` }]);
 
   const cagrP = (board.series && board.series.cagr_p) || [];
   const cagrMax = Math.max(...cagrP, 1.05);
-  drawSeries(document.getElementById("chart-cagr"), [{ color: SAFFRON, values: cagrP.map(Number) }], cagrMax);
+  drawAreaChart(document.getElementById("chart-cagr"), [{ color: SAFFRON, values: cagrP.map(Number) }], cagrMax);
   renderLegend("cagr-legend", [{ color: SAFFRON, label: "cagr_approx" }]);
 
   const counts = board.status_counts || {};
@@ -518,8 +582,8 @@ function refreshOpsLog() {
   }
   list.innerHTML = sessionLog
     .map((row) => {
-      const cls = row.method === "—" ? "mock" : statusLogClass(row.status);
-      return `<li class="${cls}"><span>${row.time}</span><span>${row.method}</span><span>${row.path}</span><span>${row.status} · ${row.ms}ms</span></li>`;
+      const stCls = logStatusClass(row);
+      return `<li><span class="log-time">${row.time}</span><span class="log-meth">${row.method}</span><span class="log-path">${row.path}</span><span class="log-status ${stCls}">${row.status} · ${row.ms}ms</span></li>`;
     })
     .join("");
 }
