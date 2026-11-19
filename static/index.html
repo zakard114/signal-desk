@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/static/app.css?v=20261119-board3" />
+    <link rel="stylesheet" href="/static/app.css?v=20261119-deskux" />
   </head>
   <body class="mode-desk">
     <div class="chrome">
@@ -41,7 +41,10 @@
               <span class="val" id="threshold-val">0.55</span>
             </label>
           <input id="threshold" type="range" min="0.5" max="0.65" step="0.01" value="0.55" />
-          <p class="field-hint">Artifact grid: 0.55–0.60 (nearest match). For a clear diff, try 0.55 vs 0.60.</p>
+          <p class="field-hint">
+            Drag threshold to choose a cutoff (artifact grid 0.55–0.60). KPIs update when you click
+            <strong>Update simulation</strong>. Compare runs in Recent runs below.
+          </p>
         </div>
           <div class="field">
             <label for="notional">Trade size (USD)</label>
@@ -64,6 +67,10 @@
         <main class="panel results" id="results">
           <h2>Simulation output</h2>
           <div class="kpis" id="kpis"></div>
+          <div class="run-history" id="run-history" hidden>
+            <h3 class="run-history-heading">Recent runs</h3>
+            <ol class="run-history-list" id="run-history-list"></ol>
+          </div>
           <div class="table-wrap">
             <h2>Latest signals</h2>
             <table>
@@ -139,7 +146,7 @@
           </div>
 
           <div data-panel="api" hidden>
-            <div class="eyebrow">API</div>
+            <div class="eyebrow">API routes</div>
             <h2 class="entry-title">HTTP routes</h2>
             <p class="note">Same-origin FastAPI on this host. <strong>Try</strong> uses the desk threshold. Advanced: <a href="/docs" target="_blank" rel="noopener">OpenAPI /docs</a>.</p>
             <table class="api-table api-try">
@@ -246,6 +253,6 @@
       </section>
     </div>
 
-    <script src="/static/app.js?v=20261119-board3"></script>
+    <script src="/static/app.js?v=20261119-deskux"></script>
   </body>
 </html>

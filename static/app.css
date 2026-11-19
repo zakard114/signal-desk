@@ -277,6 +277,47 @@ input[type="text"]:focus {
   color: var(--loss);
 }
 
+.run-history {
+  margin-bottom: 1.15rem;
+  padding: 0.75rem 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.run-history-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.run-history-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.run-history-list li {
+  margin-bottom: 0.35rem;
+}
+
+.run-history-list .run-time {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-right: 0.35rem;
+}
+
+.run-history-list strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .cta-row {
   display: flex;
   flex-wrap: wrap;

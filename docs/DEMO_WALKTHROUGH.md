@@ -14,7 +14,7 @@ The artifact stores **six cutoffs only**: **0.55, 0.56, 0.57, 0.58, 0.59, 0.60**
 | **0.56** | 2780 | 9,897 | 1.101 | 2 (no RELIANCE) |
 | **0.60** | 745 | 2,531 | 1.049 | 1 row |
 
-**Steps:** set slider **0.55** → **Update simulation** → note **Test trades**. Move to **0.60** → **Update** again. Trades should drop sharply; CAGR changes only in the third decimal (easy to miss — use **Test trades** as the main visual).
+**Steps:** set slider **0.55** → **Update simulation** → note **Test trades** (KPIs do not change until you click the button). Move to **0.60** → **Update** again. Each click appends a line under **Recent runs**. Trades should drop sharply; CAGR changes only in the third decimal (easy to miss — use **Test trades** as the main visual).
 
 ## 2. Trade size (USD)
 

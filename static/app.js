@@ -18,9 +18,11 @@ let state = {
   health: null,
   lastSim: null,
   lastSignalCount: 0,
+  runHistory: [],
 };
 
 const sessionLog = [];
+const RUN_HISTORY_MAX = 8;
 
 function fmtNum(n, digits = 2) {
   if (n == null || Number.isNaN(n)) return "—";
@@ -560,6 +562,39 @@ function nearestFromGrid(threshold) {
   };
 }
 
+function pushRunHistory(sim, threshold) {
+  if (!sim) return;
+  state.runHistory.unshift({
+    time: new Date().toLocaleTimeString(),
+    threshold: Number(threshold),
+    cagr: sim.cagr_approx,
+    trades: sim.test_trades,
+    pnl: sim.net_pnl_usd,
+  });
+  if (state.runHistory.length > RUN_HISTORY_MAX) {
+    state.runHistory.length = RUN_HISTORY_MAX;
+  }
+  renderRunHistory();
+}
+
+function renderRunHistory() {
+  const wrap = document.getElementById("run-history");
+  const list = document.getElementById("run-history-list");
+  if (!list || !wrap) return;
+  if (!state.runHistory.length) {
+    wrap.hidden = true;
+    list.innerHTML = "";
+    return;
+  }
+  wrap.hidden = false;
+  list.innerHTML = state.runHistory
+    .map((row) => {
+      const thr = Number.isFinite(row.threshold) ? row.threshold.toFixed(2) : "—";
+      return `<li><span class="run-time">${row.time}</span><strong>@${thr}</strong> · CAGR ${fmtNum(row.cagr, 3)} · trades ${fmtNum(row.trades, 0)} · P&amp;L ${fmtNum(row.pnl, 1)}</li>`;
+    })
+    .join("");
+}
+
 function renderKpis(sim) {
   const pnl = sim.net_pnl_usd;
   const pnlClass =
@@ -630,7 +665,7 @@ async function resetDeskInputs() {
   document.getElementById("ticker-filter").value = "";
   syncThresholdLabel();
   syncApiSample();
-  await runSimulation();
+  await runSimulation({ recordHistory: true });
 }
 
 function refreshInspector() {
@@ -799,7 +834,8 @@ async function loadHealth() {
   refreshInspector();
 }
 
-async function runSimulation() {
+async function runSimulation(opts = {}) {
+  const { recordHistory = false } = opts;
   const results = document.getElementById("results");
   const btn = document.getElementById("btn-run");
   const { threshold, notional, fee, tickerFilter } = readControls();
@@ -837,6 +873,9 @@ async function runSimulation() {
   document.getElementById("run-meta").textContent =
     `Strategy ${sim.pred_column || "—"} · artifact ${state.meta.generated_at || "—"}`;
   renderKpis(sim);
+  if (recordHistory) {
+    pushRunHistory(sim, threshold);
+  }
   state.lastSignalCount = renderSignals(signals, tickerFilter);
   refreshInspector();
   refreshBoard().catch(() => {});
@@ -849,11 +888,8 @@ function bindUi() {
   document.getElementById("threshold").addEventListener("input", () => {
     syncThresholdLabel();
     syncApiSample();
-    if (state.useApi && state.thresholdGrid.length > 1) {
-      runSimulation();
-    }
   });
-  document.getElementById("btn-run").addEventListener("click", () => runSimulation());
+  document.getElementById("btn-run").addEventListener("click", () => runSimulation({ recordHistory: true }));
   document.getElementById("btn-reset").addEventListener("click", () => resetDeskInputs());
   document.getElementById("ticker-filter").addEventListener("input", () => {
     const { threshold, tickerFilter } = readControls();
