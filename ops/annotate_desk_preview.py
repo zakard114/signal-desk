@@ -79,10 +79,11 @@ def layout_pixel_to_norm(
     img_h: int,
     box: tuple[int, int, int, int],
     layout_h: float = LAYOUT_VIEWPORT_H,
+    y_bias: float = 0.0,
 ) -> tuple[float, float]:
     _l, t, _r, b = box
     ch = max(1, b - t)
-    cy = t + dom_y * (ch / layout_h)
+    cy = t + (dom_y + y_bias) * (ch / layout_h)
     cx = dom_x
     return cx / img_w, cy / img_h
 
@@ -91,11 +92,18 @@ def load_markers(im: Image.Image) -> list[tuple[float, float, str, bool]]:
     data = json.loads(COORDS.read_text(encoding="utf-8"))
     box = content_bbox(im)
     layout_h = float(data.get("layout_viewport_h", LAYOUT_VIEWPORT_H))
+    y_bias = float(data.get("layout_y_bias", 0))
     out: list[tuple[float, float, str, bool]] = []
     for m in data["markers"]:
         if "dom_x" in m and "dom_y" in m:
             x, y = layout_pixel_to_norm(
-                float(m["dom_x"]), float(m["dom_y"]), im.size[0], im.size[1], box, layout_h
+                float(m["dom_x"]),
+                float(m["dom_y"]),
+                im.size[0],
+                im.size[1],
+                box,
+                layout_h,
+                y_bias,
             )
         else:
             x, y = float(m["x"]), float(m["y"])
