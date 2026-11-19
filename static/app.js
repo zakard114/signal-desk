@@ -40,7 +40,8 @@ function logApi({ method, path, status, ms, ok }) {
   refreshOpsLog();
 }
 
-async function fetchJson(path) {
+async function fetchJson(path, options = {}) {
+  const { skipSessionLog = false } = options;
   const t0 = performance.now();
   const res = await fetch(path);
   const ms = performance.now() - t0;
@@ -50,13 +51,272 @@ async function fetchJson(path) {
   } catch {
     data = null;
   }
-  logApi({ method: "GET", path, status: res.status, ms, ok: res.ok });
+  if (!skipSessionLog) {
+    logApi({ method: "GET", path, status: res.status, ms, ok: res.ok });
+  }
   if (!res.ok) {
     const err = new Error(`HTTP ${res.status}`);
     err.status = res.status;
     throw err;
   }
   return data;
+}
+
+const HOLD = "#6dcca4";
+const RISK = "#e39a94";
+const SEA = "#7eb8d8";
+const SAFFRON = "#e0b45c";
+const GRID = "rgba(231,238,244,0.16)";
+const AXIS = "rgba(231,238,244,0.62)";
+
+let boardTimer = null;
+
+function stopBoard() {
+  if (boardTimer) {
+    clearInterval(boardTimer);
+    boardTimer = null;
+  }
+}
+
+function statusColor(status) {
+  const code = Number(status);
+  if (code >= 200 && code < 300) return HOLD;
+  if (code >= 400) return RISK;
+  return SAFFRON;
+}
+
+function statusLogClass(status) {
+  const code = Number(status);
+  if (Number.isNaN(code)) return "mock";
+  if (code >= 500) return "status-5xx";
+  if (code >= 400) return "status-4xx";
+  if (code >= 300) return "status-3xx";
+  if (code >= 200) return "status-2xx";
+  return "err";
+}
+
+function drawSeries(svg, series, yMax) {
+  if (!svg) return;
+  const width = 640;
+  const height = 180;
+  const padL = 36;
+  const padB = 22;
+  const padT = 8;
+  const padR = 8;
+  const innerW = width - padL - padR;
+  const innerH = height - padT - padB;
+  const ceiling = yMax > 0 ? yMax : 1;
+  const parts = [];
+  for (let tick = 0; tick <= 3; tick += 1) {
+    const y = padT + innerH - (innerH * tick) / 3;
+    const label = (ceiling * tick) / 3;
+    const text = ceiling >= 10 ? label.toFixed(0) : label.toFixed(2);
+    parts.push(`<line x1="${padL}" y1="${y}" x2="${width - padR}" y2="${y}" stroke="${GRID}" />`);
+    parts.push(
+      `<text x="${padL - 6}" y="${y + 4}" fill="${AXIS}" font-size="11" text-anchor="end">${text}</text>`
+    );
+  }
+  series.forEach((seriesItem) => {
+    const values = seriesItem.values || [];
+    if (!values.length) return;
+    const points = values.map((value, index) => {
+      const x = padL + (values.length === 1 ? innerW / 2 : (innerW * index) / (values.length - 1));
+      const y = padT + innerH - (innerH * Math.min(value, ceiling)) / ceiling;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    parts.push(
+      `<polyline fill="none" stroke="${seriesItem.color}" stroke-width="2" points="${points.join(" ")}" />`
+    );
+  });
+  svg.innerHTML = parts.join("");
+}
+
+function drawBars(svg, items, yMax) {
+  if (!svg) return;
+  const width = 640;
+  const height = 180;
+  const padL = 36;
+  const padB = 28;
+  const padT = 8;
+  const padR = 8;
+  const innerW = width - padL - padR;
+  const innerH = height - padT - padB;
+  const ceiling = yMax > 0 ? yMax : 1;
+  const parts = [];
+  for (let tick = 0; tick <= 3; tick += 1) {
+    const y = padT + innerH - (innerH * tick) / 3;
+    const label = (ceiling * tick) / 3;
+    const text = ceiling >= 10 ? label.toFixed(0) : label.toFixed(1);
+    parts.push(`<line x1="${padL}" y1="${y}" x2="${width - padR}" y2="${y}" stroke="${GRID}" />`);
+    parts.push(
+      `<text x="${padL - 6}" y="${y + 4}" fill="${AXIS}" font-size="11" text-anchor="end">${text}</text>`
+    );
+  }
+  const n = Math.max(items.length, 1);
+  const slot = innerW / n;
+  const barW = Math.min(72, slot * 0.55);
+  items.forEach((item, index) => {
+    const h = (innerH * Math.min(item.value, ceiling)) / ceiling;
+    const x = padL + slot * index + (slot - barW) / 2;
+    const y = padT + innerH - h;
+    parts.push(
+      `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(h, 0).toFixed(1)}" fill="${item.color}" />`
+    );
+    parts.push(
+      `<text x="${(x + barW / 2).toFixed(1)}" y="${height - 8}" fill="${AXIS}" font-size="11" text-anchor="middle">${item.label}</text>`
+    );
+  });
+  svg.innerHTML = parts.join("");
+}
+
+function renderLegend(id, items) {
+  const box = document.getElementById(id);
+  if (!box) return;
+  box.replaceChildren();
+  items.forEach((item) => {
+    const span = document.createElement("span");
+    const swatch = document.createElement("span");
+    swatch.className = "swatch";
+    swatch.style.background = item.color;
+    span.append(swatch, document.createTextNode(item.label));
+    box.appendChild(span);
+  });
+}
+
+function paintCharts(board) {
+  const buckets = board.buckets || [];
+  const statuses = [];
+  buckets.forEach((bucket) => {
+    Object.keys(bucket.rates || {}).forEach((status) => {
+      if (!statuses.includes(status)) statuses.push(status);
+    });
+  });
+  statuses.sort();
+  const rateSeries = statuses.map((status) => ({
+    color: statusColor(status),
+    label: status,
+    values: buckets.map((bucket) => Number((bucket.rates || {})[status] || 0)),
+  }));
+  const rateMax = rateSeries.reduce((max, series) => Math.max(max, ...series.values, 0), 0);
+  drawSeries(document.getElementById("chart-rate"), rateSeries, rateMax);
+  renderLegend(
+    "rate-legend",
+    rateSeries.map((series) => ({ color: series.color, label: "HTTP " + series.label }))
+  );
+
+  const p95 = buckets.map((bucket) => Number(bucket.p95 || 0));
+  const p99 = buckets.map((bucket) => Number(bucket.p99 || 0));
+  let latMax = Math.max(...p95, ...p99, 0);
+  const latSeries = [
+    { color: SEA, values: p95 },
+    { color: SAFFRON, values: p99 },
+  ];
+  const rawLat = (board.series && board.series.latency_ms) || [];
+  if (latMax === 0 && rawLat.length) {
+    latSeries.length = 0;
+    latSeries.push({ color: SEA, values: rawLat.map(Number) });
+    latMax = Math.max(...rawLat, 0);
+    renderLegend("latency-legend", [{ color: SEA, label: "Latency ms" }]);
+  } else {
+    renderLegend("latency-legend", [
+      { color: SEA, label: "P95" },
+      { color: SAFFRON, label: "P99" },
+    ]);
+  }
+  drawSeries(document.getElementById("chart-latency"), latSeries, latMax);
+
+  const cagrP = (board.series && board.series.cagr_p) || [];
+  const cagrMax = Math.max(...cagrP, 1.05);
+  drawSeries(document.getElementById("chart-cagr"), [{ color: SAFFRON, values: cagrP.map(Number) }], cagrMax);
+  renderLegend("cagr-legend", [{ color: SAFFRON, label: "cagr_approx" }]);
+
+  const counts = board.status_counts || {};
+  const barItems = Object.keys(counts)
+    .sort()
+    .map((code) => ({
+      label: code,
+      value: Number(counts[code] || 0),
+      color: statusColor(code),
+    }));
+  const barMax = barItems.reduce((max, item) => Math.max(max, item.value), 0);
+  drawBars(document.getElementById("chart-status"), barItems, barMax);
+  renderLegend(
+    "status-legend",
+    barItems.map((item) => ({ color: item.color, label: "HTTP " + item.label }))
+  );
+}
+
+function paintAudit(rows) {
+  const boardBody = document.getElementById("board-body");
+  const note = document.getElementById("audit-filter");
+  if (!boardBody) return;
+  if (!rows.length) {
+    if (note) note.textContent = "No requests yet. Run Update simulation on the desk.";
+    boardBody.innerHTML = '<tr><td colspan="8">No server audit rows yet.</td></tr>';
+    return;
+  }
+  if (note) note.textContent = `${rows.length} line${rows.length === 1 ? "" : "s"} on this process.`;
+  boardBody.innerHTML = rows
+    .map((r) => {
+      const ex = r.extra || {};
+      const httpErr = Number(r.status) >= 400;
+      const isSim = String(r.path || "").includes("simulation");
+      const cagr = ex.cagr_approx != null ? Number(ex.cagr_approx).toFixed(3) : "—";
+      const thr = ex.threshold != null ? Number(ex.threshold).toFixed(2) : "—";
+      const sigs = ex.signal_count != null ? String(ex.signal_count) : "—";
+      const cls = [httpErr ? "error" : "", isSim ? "sim" : ""].filter(Boolean).join(" ");
+      const stCls = httpErr ? "" : "status-2xx";
+      return `<tr class="${cls}"><td>${r.time || "—"}</td><td class="${stCls}">${r.status ?? "—"}</td><td>${r.method || "—"}</td><td class="path">${r.path || "—"}</td><td class="num">${r.latency_ms ?? "—"}</td><td class="p">${cagr}</td><td>${thr}</td><td>${sigs}</td></tr>`;
+    })
+    .join("");
+}
+
+async function refreshBoard() {
+  const { threshold } = readControls();
+  const thrEl = document.getElementById("m-thr");
+  if (thrEl) thrEl.textContent = threshold.toFixed(2);
+  try {
+    const board = await fetchJson("/ops/board", { skipSessionLog: true });
+    const stats = board.stats || {};
+    const requests = stats.requests ?? board.request_count ?? 0;
+    const rate = Number(stats.error_rate ?? board.error_rate ?? 0);
+    const avgMs = stats.avg_ms ?? board.avg_latency_ms;
+    const errors = board.error_count ?? 0;
+    document.getElementById("m-requests").textContent = String(requests);
+    const errEl = document.getElementById("m-errors");
+    errEl.textContent = `${(rate * 100).toFixed(1)}%`;
+    errEl.className = rate > 0 ? "stop" : "ok";
+    const latEl = document.getElementById("m-latency");
+    latEl.textContent = avgMs == null ? "0 ms" : `${avgMs} ms`;
+    latEl.className = "ok";
+    document.getElementById("m-count").textContent = String(board.simulation_count ?? 0);
+    const highEl = document.getElementById("m-high");
+    highEl.textContent = String(errors);
+    highEl.className = errors > 0 ? "stop" : "ok";
+    paintCharts(board);
+    paintAudit(board.audit || []);
+  } catch (e) {
+    console.warn(e);
+  }
+}
+
+function loadGrafana() {
+  refreshBoard().catch(() => {});
+  stopBoard();
+  boardTimer = setInterval(() => {
+    const panel = document.querySelector('[data-panel="grafana"]');
+    if (!panel || panel.hidden) {
+      stopBoard();
+      return;
+    }
+    refreshBoard().catch(() => {});
+  }, 4000);
+}
+
+function refreshOpsAll() {
+  refreshInspector();
+  refreshOpsLog();
+  refreshBoard().catch(() => {});
 }
 
 function scaleSimulation(sim, notional, fee) {
@@ -202,7 +462,14 @@ function refreshInspector() {
     if (el) el.textContent = text ?? "—";
   };
   set("insp-mode", mode);
+  const modeEl = document.getElementById("insp-mode");
+  if (modeEl) modeEl.className = state.useApi ? "live" : "mock";
   set("insp-health", healthText);
+  const healthEl = document.getElementById("insp-health");
+  if (healthEl) {
+    healthEl.className =
+      health && health.status === "ok" && health.artifact_exists ? "ok" : health ? "bad" : "";
+  }
   set("insp-threshold", sim?.threshold_selected != null ? sim.threshold_selected.toFixed(2) : "—");
   set("insp-pred", sim?.pred_column || state.meta.strategy || "—");
   set("insp-cagr", sim ? fmtNum(sim.cagr_approx, 3) : "—");
@@ -223,19 +490,27 @@ function refreshOpsLog() {
   }
   list.innerHTML = sessionLog
     .map((row) => {
-      const cls = row.ok ? "ok" : "err";
+      const cls = row.method === "—" ? "mock" : statusLogClass(row.status);
       return `<li class="${cls}"><span>${row.time}</span><span>${row.method}</span><span>${row.path}</span><span>${row.status} · ${row.ms}ms</span></li>`;
     })
     .join("");
 }
 
-function setApiSampleBase() {
+function syncApiSample() {
   const el = document.getElementById("api-sample");
   if (!el) return;
   const base = window.location.origin;
-  el.textContent = `GET ${base}/v1/simulation?threshold=0.55
-GET ${base}/v1/signals/latest?threshold=0.55
-GET ${base}/health`;
+  const thr = readControls().threshold.toFixed(2);
+  el.textContent = `GET ${base}/v1/simulation?threshold=${thr}
+GET ${base}/v1/signals/latest?threshold=${thr}
+GET ${base}/health
+GET ${base}/ops/board`;
+}
+
+function showApiResponse(data) {
+  const el = document.getElementById("api-response");
+  if (!el) return;
+  el.textContent = JSON.stringify(data, null, 2);
 }
 
 function bindOpsUi() {
@@ -250,14 +525,17 @@ function bindOpsUi() {
     opsStage.hidden = false;
     document.body.classList.add("mode-ops");
     document.body.classList.remove("mode-desk");
-    refreshInspector();
-    refreshOpsLog();
+    syncApiSample();
+    refreshOpsAll();
+    const grafanaOn = document.querySelector('.tab[data-tab="grafana"]')?.classList.contains("on");
+    if (grafanaOn) loadGrafana();
     if (window.history.replaceState) {
       window.history.replaceState(null, "", "/?view=ops");
     }
   };
 
   const showDesk = () => {
+    stopBoard();
     opsStage.hidden = true;
     deskShell.hidden = false;
     document.body.classList.add("mode-desk");
@@ -280,6 +558,28 @@ function bindOpsUi() {
       document.querySelectorAll("[data-panel]").forEach((panel) => {
         panel.hidden = panel.getAttribute("data-panel") !== name;
       });
+      if (name === "grafana") loadGrafana();
+      else stopBoard();
+      if (name === "api") syncApiSample();
+    });
+  });
+
+  document.querySelectorAll(".try-api").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const path = btn.getAttribute("data-path");
+      if (!path) return;
+      let url = path;
+      if (btn.getAttribute("data-threshold") === "1") {
+        url = `${path}?threshold=${readControls().threshold}`;
+      }
+      try {
+        const data = await fetchJson(url);
+        showApiResponse(data);
+        syncApiSample();
+        refreshInspector();
+      } catch (e) {
+        showApiResponse({ error: String(e.message || e) });
+      }
     });
   });
 
@@ -340,6 +640,7 @@ async function runSimulation() {
   renderKpis(sim);
   state.lastSignalCount = renderSignals(signals, tickerFilter);
   refreshInspector();
+  refreshBoard().catch(() => {});
   results.classList.remove("loading");
   btn.disabled = false;
   btn.textContent = "Update simulation";
@@ -348,6 +649,7 @@ async function runSimulation() {
 function bindUi() {
   document.getElementById("threshold").addEventListener("input", () => {
     syncThresholdLabel();
+    syncApiSample();
     if (state.useApi && state.thresholdGrid.length > 1) {
       runSimulation();
     }
@@ -371,7 +673,7 @@ function bindUi() {
 
 async function init() {
   bindOpsUi();
-  setApiSampleBase();
+  syncApiSample();
   bindUi();
   syncThresholdLabel();
   try {

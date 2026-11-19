@@ -95,6 +95,7 @@
             </button>
             <button class="tab" type="button" data-tab="log" role="tab" aria-selected="false">Log</button>
             <button class="tab" type="button" data-tab="api" role="tab" aria-selected="false">API</button>
+            <button class="tab" type="button" data-tab="grafana" role="tab" aria-selected="false">Grafana</button>
           </div>
           <button class="ghost" id="close-ops" type="button">Desk</button>
         </div>
@@ -134,22 +135,97 @@
 
           <div data-panel="api" hidden>
             <div class="eyebrow">API</div>
-            <p class="note">Same-origin FastAPI routes on this host. Interactive schema: <a href="/docs" target="_blank" rel="noopener">OpenAPI /docs</a> (advanced).</p>
-            <table class="api-table">
+            <p class="note">Same-origin FastAPI on this host. <strong>Try</strong> uses the desk threshold. Advanced: <a href="/docs" target="_blank" rel="noopener">OpenAPI /docs</a>.</p>
+            <table class="api-table api-try">
               <thead>
-                <tr><th>Method</th><th>Path</th><th>Role</th></tr>
+                <tr><th>Method</th><th>Path</th><th>Role</th><th></th></tr>
               </thead>
               <tbody>
-                <tr><td>GET</td><td><code>/</code></td><td>Ledger desk UI</td></tr>
-                <tr><td>GET</td><td><code>/health</code></td><td>Liveness + artifact path</td></tr>
-                <tr><td>GET</td><td><code>/v1/meta</code></td><td>Artifact metadata</td></tr>
-                <tr><td>GET</td><td><code>/v1/threshold-grid</code></td><td>Precomputed cutoffs + KPIs</td></tr>
-                <tr><td>GET</td><td><code>/v1/simulation?threshold=</code></td><td>Simulation row for threshold</td></tr>
-                <tr><td>GET</td><td><code>/v1/signals/latest?threshold=</code></td><td>Latest signal table slice</td></tr>
+                <tr>
+                  <td class="meth">GET</td><td><code>/health</code></td><td>Liveness</td>
+                  <td><button type="button" class="try-api" data-path="/health">Try</button></td>
+                </tr>
+                <tr>
+                  <td class="meth">GET</td><td><code>/v1/meta</code></td><td>Artifact metadata</td>
+                  <td><button type="button" class="try-api" data-path="/v1/meta">Try</button></td>
+                </tr>
+                <tr>
+                  <td class="meth">GET</td><td><code>/v1/threshold-grid</code></td><td>Cutoff grid</td>
+                  <td><button type="button" class="try-api" data-path="/v1/threshold-grid">Try</button></td>
+                </tr>
+                <tr>
+                  <td class="meth">GET</td><td><code>/v1/simulation?threshold=</code></td><td>Simulation KPIs</td>
+                  <td><button type="button" class="try-api" data-path="/v1/simulation" data-threshold="1">Try</button></td>
+                </tr>
+                <tr>
+                  <td class="meth">GET</td><td><code>/v1/signals/latest?threshold=</code></td><td>Latest signals</td>
+                  <td><button type="button" class="try-api" data-path="/v1/signals/latest" data-threshold="1">Try</button></td>
+                </tr>
+                <tr>
+                  <td class="meth">GET</td><td><code>/ops/board</code></td><td>Ops Grafana board</td>
+                  <td><button type="button" class="try-api" data-path="/ops/board">Try</button></td>
+                </tr>
               </tbody>
             </table>
-            <pre class="sample" id="api-sample">GET /v1/simulation?threshold=0.55
-GET /v1/signals/latest?threshold=0.55</pre>
+            <pre class="sample" id="api-sample">—</pre>
+            <pre class="sample sample-response" id="api-response">Last response appears here.</pre>
+          </div>
+
+          <div data-panel="grafana" hidden>
+            <div class="eyebrow">Grafana</div>
+            <h2 class="entry-title">Request board</h2>
+            <p class="note" id="grafana-status">
+              Request rate by HTTP status, P95/P99 latency, simulation CAGR trail, and server audit. Green = 2xx. Amber = other. Red = errors. No external Grafana server.
+            </p>
+            <div class="metrics" id="board-metrics">
+              <div class="metric"><span class="m-label">Requests</span><strong id="m-requests">0</strong></div>
+              <div class="metric"><span class="m-label">HTTP error rate</span><strong id="m-errors" class="ok">0%</strong></div>
+              <div class="metric"><span class="m-label">Average latency</span><strong id="m-latency" class="ok">0 ms</strong></div>
+              <div class="metric"><span class="m-label">Simulations</span><strong id="m-count">0</strong></div>
+              <div class="metric"><span class="m-label">Errors</span><strong id="m-high" class="ok">0</strong></div>
+              <div class="metric"><span class="m-label">Threshold</span><strong id="m-thr">0.55</strong></div>
+            </div>
+            <div class="chart-card">
+              <h3>Request rate by status</h3>
+              <svg id="chart-rate" viewBox="0 0 640 180" role="img" aria-label="Requests per second by HTTP status"></svg>
+              <div class="legend" id="rate-legend"></div>
+            </div>
+            <div class="chart-card">
+              <h3>Latency P95 and P99</h3>
+              <svg id="chart-latency" viewBox="0 0 640 180" role="img" aria-label="P95 and P99 latency"></svg>
+              <div class="legend" id="latency-legend"></div>
+            </div>
+            <div class="chart-card">
+              <h3>Simulation CAGR (recent)</h3>
+              <svg id="chart-cagr" viewBox="0 0 640 180" role="img" aria-label="CAGR over recent simulations"></svg>
+              <div class="legend" id="cagr-legend"></div>
+            </div>
+            <div class="chart-card">
+              <h3>Status mix</h3>
+              <svg id="chart-status" viewBox="0 0 640 180" role="img" aria-label="HTTP status counts"></svg>
+              <div class="legend" id="status-legend"></div>
+            </div>
+            <div class="chart-card">
+              <h3>Audit log</h3>
+              <p class="note" id="audit-filter">Recent requests on this process.</p>
+              <div class="audit">
+                <table class="api-table board-table audit-table">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Status</th>
+                      <th>Method</th>
+                      <th>Path</th>
+                      <th class="num">ms</th>
+                      <th>CAGR</th>
+                      <th>Thr</th>
+                      <th>#sig</th>
+                    </tr>
+                  </thead>
+                  <tbody id="board-body"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </section>

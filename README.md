@@ -12,7 +12,7 @@ US equity ML signals — FastAPI + ledger UI over frozen simulation artifacts.
 
 - Web: threshold slider, simulation KPIs, latest signals table
 - API: `/v1/threshold-grid`, `/v1/simulation?threshold=`, `/v1/signals/latest?threshold=`
-- Ops: in-app overlay (top-right **Ops** → Inspector · Log · API); shortcut `GET /ops` → `/?view=ops`
+- Ops: in-app overlay (**Ops** → Inspector · Log · API · Grafana + `GET /ops/board`); `GET /ops` → `/?view=ops`
 
 No parquet in this repository; cloud serves `artifacts/latest.json` only.
 
