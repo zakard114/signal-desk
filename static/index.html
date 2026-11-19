@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Signal Desk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <h1>Signal Desk</h1>
+          <p class="tagline">
+            Configure a probability rule, run the vector simulation view, and inspect latest model signals.
+          </p>
+          <p class="run-meta" id="run-meta">Loading…</p>
+          <span class="badge-preview" id="preview-badge">UI preview</span>
+        </div>
+        <div class="hero-actions">
+          <a class="btn-ops" href="/ops">Ops</a>
+          <a class="btn-ops" href="/docs" target="_blank" rel="noopener">API</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel controls">
+        <h2>Strategy inputs</h2>
+        <div class="field">
+          <label>
+            Probability threshold
+            <span class="val" id="threshold-val">0.55</span>
+          </label>
+          <input id="threshold" type="range" min="0.5" max="0.65" step="0.01" value="0.55" />
+        </div>
+        <div class="field">
+          <label for="notional">Trade size (USD)</label>
+          <input id="notional" type="number" min="1" step="1" value="100" />
+        </div>
+        <div class="field">
+          <label for="fee">Fee rate</label>
+          <input id="fee" type="number" min="0" step="0.0001" value="0.002" />
+        </div>
+        <div class="field">
+          <label for="ticker-filter">Ticker filter</label>
+          <input id="ticker-filter" type="text" placeholder="e.g. AAPL" autocomplete="off" />
+        </div>
+        <button type="button" class="btn-primary" id="btn-run">Update simulation</button>
+      </aside>
+
+      <main class="panel results" id="results">
+        <h2>Simulation output</h2>
+        <div class="kpis" id="kpis"></div>
+        <div class="table-wrap">
+          <h2>Latest signals</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Ticker</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody id="signals-body"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+
+    <footer>
+      <a href="/docs">OpenAPI</a>
+      ·
+      <a href="https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project" target="_blank" rel="noopener"
+        >Course pipeline (GitHub)</a
+      >
+    </footer>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

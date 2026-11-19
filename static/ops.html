@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Signal Desk — Ops</title>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <h1>Ops</h1>
+          <p class="tagline">Health, artifacts, and local pipeline refresh.</p>
+          <p class="run-meta" id="ops-health">Checking…</p>
+        </div>
+        <div class="hero-actions">
+          <a class="btn-ops" href="/">App</a>
+          <a class="btn-ops" href="/docs" target="_blank" rel="noopener">API</a>
+        </div>
+      </div>
+    </header>
+    <div class="layout" style="grid-template-columns: 1fr">
+      <main class="panel">
+        <h2>Endpoints</h2>
+        <ul>
+          <li><a href="/health">GET /health</a></li>
+          <li><a href="/v1/meta">GET /v1/meta</a></li>
+          <li><a href="/v1/threshold-grid">GET /v1/threshold-grid</a></li>
+        </ul>
+        <h2 style="margin-top: 1.25rem">Refresh artifact (local E:)</h2>
+        <pre style="font-family: var(--font-mono); font-size: 0.8rem; overflow-x: auto">. E:\IT_SPACES\AI\scripts\use_e_drive.ps1
+E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe ops\export_artifacts.py</pre>
+        <p style="color: var(--muted); font-size: 0.85rem">
+          Rebuilds <code>artifacts/latest.json</code> with threshold grid (RF train once, sim 0.55–0.60).
+        </p>
+      </main>
+    </div>
+    <script>
+      fetch("/health")
+        .then((r) => r.json())
+        .then((h) => {
+          document.getElementById("ops-health").textContent =
+            `${h.status} · artifact ${h.artifact_exists ? "present" : "missing"}`;
+        })
+        .catch(() => {
+          document.getElementById("ops-health").textContent = "API unreachable";
+        });
+    </script>
+  </body>
+</html>

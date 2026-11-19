@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: signal-desk
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: SIGNAL_DESK_ARTIFACT
+        value: /app/artifacts/latest.json

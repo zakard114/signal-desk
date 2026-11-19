@@ -1,0 +1,184 @@
+{
+  "product": "Signal Desk",
+  "generated_at": "2026-11-19T01:03:28+00:00",
+  "source": {
+    "pipeline": "ZoomCamp SMA/Project",
+    "data_path_note": "Local parquet on E:; not stored in this repo"
+  },
+  "defaults": {
+    "trade_notional_usd": 100.0,
+    "fee_rate": 0.002
+  },
+  "default_threshold": 0.55,
+  "strategy": "pred_rf_0.55",
+  "rows": 202292,
+  "features": 208,
+  "simulation": {
+    "pred_column": "pred_rf_0.55",
+    "test_trades": 3756,
+    "avg_trades_per_day": 6.058064516129032,
+    "q75_trades_per_day": 7.0,
+    "assumed_capital_usd": 21000.0,
+    "net_pnl_usd": 12983.596110181736,
+    "cagr_approx": 1.1278789977008685
+  },
+  "latest_signals": [
+    {
+      "date": "2026-09-18",
+      "ticker": "HINDUNILVR.NS",
+      "ticker_type": "INDIA"
+    },
+    {
+      "date": "2026-09-18",
+      "ticker": "RELIANCE.NS",
+      "ticker_type": "INDIA"
+    },
+    {
+      "date": "2026-09-18",
+      "ticker": "SBIN.NS",
+      "ticker_type": "INDIA"
+    }
+  ],
+  "threshold_grid": [
+    {
+      "threshold": 0.55,
+      "pred_column": "pred_rf_0.55",
+      "simulation": {
+        "pred_column": "pred_rf_0.55",
+        "test_trades": 3756,
+        "avg_trades_per_day": 6.058064516129032,
+        "q75_trades_per_day": 7.0,
+        "assumed_capital_usd": 21000.0,
+        "net_pnl_usd": 12983.596110181736,
+        "cagr_approx": 1.1278789977008685
+      },
+      "latest_signals": [
+        {
+          "date": "2026-09-18",
+          "ticker": "HINDUNILVR.NS",
+          "ticker_type": "INDIA"
+        },
+        {
+          "date": "2026-09-18",
+          "ticker": "RELIANCE.NS",
+          "ticker_type": "INDIA"
+        },
+        {
+          "date": "2026-09-18",
+          "ticker": "SBIN.NS",
+          "ticker_type": "INDIA"
+        }
+      ]
+    },
+    {
+      "threshold": 0.56,
+      "pred_column": "pred_rf_0.56",
+      "simulation": {
+        "pred_column": "pred_rf_0.56",
+        "test_trades": 2780,
+        "avg_trades_per_day": 5.346153846153846,
+        "q75_trades_per_day": 7.0,
+        "assumed_capital_usd": 21000.0,
+        "net_pnl_usd": 9897.131593585947,
+        "cagr_approx": 1.1013483790873397
+      },
+      "latest_signals": [
+        {
+          "date": "2026-09-18",
+          "ticker": "HINDUNILVR.NS",
+          "ticker_type": "INDIA"
+        },
+        {
+          "date": "2026-09-18",
+          "ticker": "SBIN.NS",
+          "ticker_type": "INDIA"
+        }
+      ]
+    },
+    {
+      "threshold": 0.57,
+      "pred_column": "pred_rf_0.57",
+      "simulation": {
+        "pred_column": "pred_rf_0.57",
+        "test_trades": 2086,
+        "avg_trades_per_day": 4.851162790697674,
+        "q75_trades_per_day": 6.0,
+        "assumed_capital_usd": 18000.0,
+        "net_pnl_usd": 7593.326093968284,
+        "cagr_approx": 1.0919771640224991
+      },
+      "latest_signals": [
+        {
+          "date": "2026-09-18",
+          "ticker": "HINDUNILVR.NS",
+          "ticker_type": "INDIA"
+        },
+        {
+          "date": "2026-09-18",
+          "ticker": "SBIN.NS",
+          "ticker_type": "INDIA"
+        }
+      ]
+    },
+    {
+      "threshold": 0.58,
+      "pred_column": "pred_rf_0.58",
+      "simulation": {
+        "pred_column": "pred_rf_0.58",
+        "test_trades": 1519,
+        "avg_trades_per_day": 4.494082840236686,
+        "q75_trades_per_day": 6.0,
+        "assumed_capital_usd": 18000.0,
+        "net_pnl_usd": 5342.6267630082275,
+        "cagr_approx": 1.0671348551152524
+      },
+      "latest_signals": [
+        {
+          "date": "2026-09-18",
+          "ticker": "HINDUNILVR.NS",
+          "ticker_type": "INDIA"
+        }
+      ]
+    },
+    {
+      "threshold": 0.59,
+      "pred_column": "pred_rf_0.59",
+      "simulation": {
+        "pred_column": "pred_rf_0.59",
+        "test_trades": 1090,
+        "avg_trades_per_day": 4.325396825396825,
+        "q75_trades_per_day": 5.0,
+        "assumed_capital_usd": 15000.0,
+        "net_pnl_usd": 3753.3189940319153,
+        "cagr_approx": 1.0574180524536678
+      },
+      "latest_signals": [
+        {
+          "date": "2026-09-18",
+          "ticker": "HINDUNILVR.NS",
+          "ticker_type": "INDIA"
+        }
+      ]
+    },
+    {
+      "threshold": 0.6,
+      "pred_column": "pred_rf_0.60",
+      "simulation": {
+        "pred_column": "pred_rf_0.60",
+        "test_trades": 745,
+        "avg_trades_per_day": 3.941798941798942,
+        "q75_trades_per_day": 4.0,
+        "assumed_capital_usd": 12000.0,
+        "net_pnl_usd": 2531.1367367229627,
+        "cagr_approx": 1.049009897584746
+      },
+      "latest_signals": [
+        {
+          "date": "2026-09-17",
+          "ticker": "HINDUNILVR.NS",
+          "ticker_type": "INDIA"
+        }
+      ]
+    }
+  ]
+}
