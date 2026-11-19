@@ -153,36 +153,26 @@ python ops\export_artifacts.py
 
 **Live path (infographic):** User → Render FastAPI → `static/` desk + Ops overlay → `GET /v1/*` and `GET /ops/board` → read `artifacts/latest.json` baked into the image. No separate Grafana server on Render.
 
-Technical graph (same system, code-oriented):
-
-```mermaid
-flowchart TD
-    User["User / Reviewer"] --> Browser["Browser<br/>static/index.html + app.js"]
-    Browser --> Desk["Signal Desk<br/>threshold · Update simulation · KPIs · signals"]
-    Browser --> Ops["Ops overlay<br/>Inspector · Log · API · Grafana tab"]
-    Desk --> API["FastAPI app/main.py<br/>GET /v1/*"]
-    Ops --> Board["GET /ops/board<br/>app/audit.board_payload()"]
-    API --> Artifact[("artifacts/latest.json<br/>threshold grid 0.55–0.60 · baked in Docker")]
-    Board --> API
-    Export["Offline (E: only)<br/>parquet → export_artifacts.py"] -.-> Artifact
-    Render["Render web service<br/>signal-desk-c3dx.onrender.com"] --> API
-
-    linkStyle default stroke:#d4a24c,stroke-width:1.5px
-
-    style User fill:#0a0e12,color:#d8dce3,stroke:#d4a24c
-    style Browser fill:#121820,color:#d8dce3,stroke:#d4a24c
-    style Desk fill:#0f1419,color:#d8dce3,stroke:#6dcca4
-    style Ops fill:#0f1419,color:#d8dce3,stroke:#6dcca4
-    style API fill:#3d3424,color:#d8dce3,stroke:#d4a24c
-    style Board fill:#121820,color:#d8dce3,stroke:#6dcca4
-    style Artifact fill:#1e3a5f,color:#d8dce3,stroke:#60a5fa
-    style Export fill:#0a0e12,color:#8b95a8,stroke:#64748b
-    style Render fill:#0a0e12,color:#d8dce3,stroke:#d4a24c
-```
-
 **Request path (short):** drag threshold → client preview from grid → **Update simulation** → `GET /v1/simulation` + `GET /v1/signals/latest` · Ops **Grafana** tab polls `GET /ops/board` on the same process.
 
-Extended Mermaid and ASCII: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Technical graph (compact — left-to-right):
+
+```mermaid
+flowchart LR
+    U["User"] --> B["Browser<br/>static/"]
+    B --> D["Desk"]
+    B --> O["Ops"]
+    D --> F["FastAPI<br/>/v1"]
+    O --> G["/ops/board"]
+    G --> F
+    F --> J[("latest.json")]
+    R["Render"] --> F
+    X["export offline"] -.-> J
+
+    linkStyle default stroke:#d4a24c,stroke-width:1.5px
+```
+
+Step-by-step Mermaid (TD) and ASCII: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 [↑ Contents](#table-of-contents)
 
@@ -241,9 +231,21 @@ Plain capture: [`docs/images/desk/desk-after-update.png`](docs/images/desk/desk-
 
 ### Ops overlay (Inspector · Log · API · Grafana)
 
-| Inspector | Log | API | Grafana tab |
-|:---:|:---:|:---:|:---:|
-| ![Inspector](docs/images/ops/ops-inspector.png) | ![Log](docs/images/ops/ops-log.png) | ![API](docs/images/ops/ops-api.png) | ![Grafana tab](docs/images/ops/ops-grafana.png) |
+**Inspector** — last simulation snapshot, artifact meta, CAGR.
+
+![Inspector — full width](docs/images/ops/ops-inspector.png)
+
+**Log** — API calls from this browser session.
+
+![Log — full width](docs/images/ops/ops-log.png)
+
+**API** — routes, **Try**, sample responses ([OpenAPI `/docs`](https://signal-desk-c3dx.onrender.com/docs)).
+
+![API — full width](docs/images/ops/ops-api.png)
+
+**Grafana tab** — in-process board from `GET /ops/board` (not a separate Grafana server on Render).
+
+![Grafana tab — full width](docs/images/ops/ops-grafana.png)
 
 [↑ Contents](#table-of-contents)
 
@@ -258,17 +260,18 @@ Maps the **course capstone** and **this repo** to the official [Stock Markets An
 | [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) @ [`dd4cd5a`](https://github.com/zakard114/ZoomCamp/commit/dd4cd5a) | **Graded pipeline** — data → features → RandomForest → vector simulation → `run.py` / `project.ipynb` |
 | **This repo** (`signal-desk`) + https://signal-desk-c3dx.onrender.com | **LiP / portfolio** — frozen artifact API, desk UI, Ops monitoring, Render deploy |
 
-| # | Rubric block (official) | Max | Evidence (where to verify) |
-|---|-------------------------|-----|----------------------------|
-| 1 | **Problem description** | 4 | Capstone: [Problem](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#problem) in `SMA/Project` README; portfolio framing: [Mission](#mission) + [Problem](#problem) here |
-| 2 | **Data sources** | 4 | Capstone: [Data sources (lecture)](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#data-sources-lecture) — YFinance / TA / FRED combined parquet (local path, not on GitHub) |
-| 3 | **Data transformations + EDA** | 3 | Capstone: `src/features.py` `FEATURE_SETS` (TO_PREDICT, NUMERIC, DUMMIES) — [`features.py`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/features.py) |
-| 4 | **Modeling** | 5 | Capstone: `RandomForestClassifier` in `src/modeling.py`; threshold rule `pred_rf_0.55` — [Model & strategy](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#model--strategy) |
-| 5 | **Trading simulation** | 8 | Capstone: vector sim, fees, CAGR — `src/simulation.py`, verified table in [SMA/Project README](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#verified-run-local-2026-11-18); six cutoffs in `ops/export_artifacts.py` → `artifacts/latest.json` |
-| 6 | **Automation** | 5 | Capstone: `run.py` + `project.ipynb` orchestration, `requirements.txt` — [Reproduce](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#reproduce); **this repo:** `ops/export_artifacts.py` (artifact refresh), [Quick start](#quick-start), `Dockerfile` |
-| 7 | **Bonus** | 7 | **This repo:** containerization ([`Dockerfile`](Dockerfile)); cloud deploy ([Cloud deployment](#cloud-deployment), [`render.yaml`](render.yaml)); monitoring dashboard (**Ops → Grafana**, [`docs/OPS.md`](docs/OPS.md), [Screenshots](#screenshots)); modular `app/` + `static/` layout. Peer discretionary bonus: reviewer decides (+1–2). |
+| # | Rubric block (official) | Max | Claimed | Evidence |
+|---|-------------------------|-----|---------|----------|
+| 1 | **Problem description** | 4 | 2 | [`SMA/Project` problem](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#problem); [Mission](#mission) + [Problem](#problem) on this README |
+| 2 | **Data sources** | 4 | 1 | [Lecture sources](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#data-sources-lecture) (YFinance / TA / FRED parquet — local, not on GitHub) |
+| 3 | **Data transformations + EDA** | 3 | 1 | [`FEATURE_SETS`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/features.py) in `src/features.py` |
+| 4 | **Modeling** | 5 | 1 | [`RandomForestClassifier`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#model--strategy), `pred_rf_0.55` |
+| 5 | **Trading simulation** | 8 | 1 | Vector sim + fees + CAGR in `src/simulation.py`; [verified run](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#verified-run-local-2026-11-18); six cutoffs → [`artifacts/latest.json`](artifacts/latest.json) via `ops/export_artifacts.py` |
+| 6 | **Automation** | 5 | 2 | [`run.py`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#reproduce) + `project.ipynb`, `requirements.txt`; this repo: [Quick start](#quick-start), [`Dockerfile`](Dockerfile), `ops/export_artifacts.py` |
+| 7 | **Bonus** | 7 | 3 | Container ([`Dockerfile`](Dockerfile)), cloud ([Cloud deployment](#cloud-deployment)), monitoring ([Ops → Grafana](#ops-overlay-inspector--log--api--grafana), [`docs/OPS.md`](docs/OPS.md)). Peer discretionary (+1–2) not self-scored. |
+| | **Total (self-assessment)** | **36** | **11** | Official rubric caps at 36; course requires **≥6** from **bold** rows in sections 1–6 (bold items evidenced in `SMA/Project` @ `dd4cd5a` — run `run.py`). |
 
-**Bold floor (official minimum):** items marked **bold** in rubric sections 1–6 are implemented in `SMA/Project` @ `dd4cd5a` (see capstone README and `run.py` output). Remaining rubric checkboxes (extra features, second strategy, cron, benchmark, etc.) are **optional** — not claimed in this table unless you add evidence in the capstone repo first.
+**Claimed** = author self-score against the [official checklist](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp/blob/main/projects/README.md) only where evidence is linked; peers and the course form decide the final score. Optional rubric rows (second strategy, cron, benchmark, …) are **not** counted in **Claimed** until documented.
 
 ### Quick verification commands
 
@@ -282,8 +285,6 @@ cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals
 uvicorn app.main:app --port 8080
 # Smoke: GET http://127.0.0.1:8080/v1/threshold-grid  →  "count": 6
 ```
-
-Course submission (2026 attempt 1): https://courses.datatalks.club/sma-zoomcamp-2026/project/project1
 
 [↑ Contents](#table-of-contents)
 

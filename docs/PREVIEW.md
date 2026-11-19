@@ -87,12 +87,20 @@ E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe ops\annotate_desk_preview.p
 
 ### Ops tabs
 
-| Tab | Preview | Role |
-|-----|---------|------|
-| Inspector | ![Inspector](./images/ops/ops-inspector.png) | Last simulation snapshot, CAGR, pred column, artifact info |
-| Log | ![Log](./images/ops/ops-log.png) | API calls from this browser (desk + Ops) |
-| API | ![API](./images/ops/ops-api.png) | Routes, **Try**, sample URL and last response |
-| Grafana | ![Grafana tab](./images/ops/ops-grafana.png) | In-app board from `GET /ops/board` (no external Grafana on Render) |
+![Inspector](./images/ops/ops-inspector.png)
+
+![Log](./images/ops/ops-log.png)
+
+![API](./images/ops/ops-api.png)
+
+![Grafana tab](./images/ops/ops-grafana.png)
+
+| Tab | Role |
+|-----|------|
+| Inspector | Last simulation snapshot, CAGR, pred column, artifact info |
+| Log | API calls from this browser (desk + Ops) |
+| API | Routes, **Try**, sample URL and last response |
+| Grafana | In-app board from `GET /ops/board` (no external Grafana on Render) |
 
 ---
 

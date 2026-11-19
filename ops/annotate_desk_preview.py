@@ -12,15 +12,16 @@ DST = ROOT / "docs" / "images" / "desk" / "desk-annotated.png"
 NEON = (255, 72, 72, 255)
 NEON_GLOW = (255, 72, 72, 72)
 
+# Trimmed desk frame (~1400px wide); run ops/crop_desk_frame.py first.
 MARKERS: list[tuple[float, float, str]] = [
-    (0.12, 0.11, "1"),
-    (0.20, 0.36, "2"),
-    (0.20, 0.52, "3"),
-    (0.16, 0.66, "4"),
-    (0.62, 0.36, "5"),
-    (0.62, 0.47, "6"),
-    (0.55, 0.68, "7"),
-    (0.93, 0.04, "8"),
+    (0.32, 0.12, "1"),
+    (0.20, 0.34, "2"),
+    (0.20, 0.46, "3"),
+    (0.20, 0.68, "4"),
+    (0.62, 0.34, "5"),
+    (0.58, 0.44, "6"),
+    (0.62, 0.70, "7"),
+    (0.94, 0.04, "8"),
 ]
 
 FONT_CANDIDATES = (
@@ -61,7 +62,7 @@ def main() -> None:
     w, h = im.size
     overlay = Image.new("RGBA", im.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
-    font_size = max(12, int(min(w, h) * 0.017))
+    font_size = max(13, int(min(w, h) * 0.020))
     font = load_font(font_size)
 
     for xp, yp, label in MARKERS:
@@ -73,6 +74,11 @@ def main() -> None:
         draw.ellipse(glow, outline=NEON_GLOW, width=1)
         draw.ellipse(bbox, outline=NEON, width=1)
         draw.text((cx, cy), label, font=font, fill=NEON, anchor="mm")
+
+    bx, by = int(0.20 * w), int(0.58 * h)
+    half, _, _ = marker_box(draw, "b", font)
+    draw.ellipse((bx - half, by - half, bx + half, by + half), outline=NEON, width=1)
+    draw.text((bx, by), "b", font=load_font(max(10, font_size - 2)), fill=NEON, anchor="mm")
 
     out = Image.alpha_composite(im, overlay).convert("RGB")
     DST.parent.mkdir(parents=True, exist_ok=True)
