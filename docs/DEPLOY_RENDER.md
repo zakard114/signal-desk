@@ -1,6 +1,8 @@
 # Deploy on Render (Signal Desk)
 
-Deadline context: set **Live demo** in root `README.md` before **11/21** if you want the URL in LiP.
+**Production:** https://signal-desk-c3dx.onrender.com (from `main` + Docker + `artifacts/latest.json`).
+
+After code pushes, confirm **Manual Deploy** if the service lags auto-deploy (Ops **Grafana** tab and `GET /ops/board` should exist).
 
 ## Prerequisites
 

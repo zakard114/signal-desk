@@ -7,12 +7,13 @@ US equity ML signals — FastAPI + ledger UI over frozen simulation artifacts.
 | **Repository** | https://github.com/zakard114/signal-desk |
 | **Live demo** | https://signal-desk-c3dx.onrender.com |
 | **Capstone pipeline** | [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) (course @ `dd4cd5a`) |
+| **Try inputs** | [Demo walkthrough](docs/DEMO_WALKTHROUGH.md) (threshold 0.55 vs 0.60, notional, Ops) |
 
 ## Features
 
-- Web: threshold slider, simulation KPIs, latest signals table
+- Web: threshold slider (**0.55–0.60** grid), simulation KPIs, latest signals table
 - API: `/v1/threshold-grid`, `/v1/simulation?threshold=`, `/v1/signals/latest?threshold=`
-- Ops: in-app overlay (**Ops** → Inspector · Log · API · Grafana + `GET /ops/board`); `GET /ops` → `/?view=ops`
+- Ops: HoldRisk-style overlay — **Inspector · Log · API · Grafana**; server board `GET /ops/board` (audit, rate/latency/CAGR charts)
 
 No parquet in this repository; cloud serves `artifacts/latest.json` only.
 
@@ -41,6 +42,9 @@ http://127.0.0.1:8080/
 ## Docs
 
 - [Documentation index](docs/README.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Ops & Grafana](docs/OPS.md)
+- [Demo walkthrough](docs/DEMO_WALKTHROUGH.md)
 - [Deploy on Render](docs/DEPLOY_RENDER.md)
 - [Learning in Public (LinkedIn)](docs/LIP_LINKEDIN.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)

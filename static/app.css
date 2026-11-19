@@ -145,6 +145,13 @@ body {
   margin-bottom: 1.1rem;
 }
 
+.field-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .field label {
   display: flex;
   justify-content: space-between;

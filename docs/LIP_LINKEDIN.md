@@ -5,6 +5,7 @@ SMA 2026 optional LiP: prefer **post URL** or **live demo URL**, not profile-onl
 ## Checklist
 
 - [x] Render demo https://signal-desk-c3dx.onrender.com
+- [x] Ops + Grafana (`GET /ops/board`) on live host
 - [ ] Post published on LinkedIn
 - [ ] Optional: add post URL or demo URL to course LiP field if the form allows
 
@@ -19,7 +20,7 @@ Finished Stock Markets Analytics capstone Attempt 1 (random forest + vector simu
 For Learning in Public I split the work:
 
 - **Repro / course:** [ZoomCamp SMA/Project](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) — training notebook, parquet pipeline, graded snapshot.
-- **Demo:** [Signal Desk](https://github.com/zakard114/signal-desk) — FastAPI + ledger UI over frozen simulation artifacts (threshold slider, KPIs, latest signals). No parquet in the demo repo; cloud serves precomputed JSON.
+- **Demo:** [Signal Desk](https://github.com/zakard114/signal-desk) — FastAPI + ledger UI over frozen simulation artifacts (threshold slider, KPIs, latest signals), in-app Ops with Grafana-style board (`/ops/board`). No parquet in the demo repo; cloud serves precomputed JSON.
 
 Stack: Python, scikit-learn, FastAPI, Docker, Render.
 
