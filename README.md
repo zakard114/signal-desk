@@ -40,8 +40,13 @@ http://127.0.0.1:8080/
 
 ## Docs
 
+- [Documentation index](docs/README.md)
+- [Deploy on Render](docs/DEPLOY_RENDER.md)
+- [Learning in Public (LinkedIn)](docs/LIP_LINKEDIN.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Notes](docs/NOTES.md)
+
+Optional README screenshots: see [LIP_LINKEDIN.md](docs/LIP_LINKEDIN.md#readme-screenshots-optional).
 
 ## Credits
 
