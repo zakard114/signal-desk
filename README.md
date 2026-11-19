@@ -38,10 +38,11 @@ Parquet, RandomForest fit, and `export_artifacts.py` stay **offline**; Render sh
 - [Decisions and trade-offs](#decisions-and-trade-offs)
 - [Project structure](#project-structure)
 - [Screenshots](#screenshots)
+- [Evaluation criteria](#evaluation-criteria)
 - [Cloud deployment](#cloud-deployment)
 - [Documentation](#documentation)
 - [Troubleshooting](#troubleshooting)
-- [Credits](#credits)
+- [License](#license)
 
 ---
 
@@ -248,6 +249,46 @@ Plain capture: [`docs/images/desk/desk-after-update.png`](docs/images/desk/desk-
 
 ---
 
+## Evaluation criteria
+
+Maps the **course capstone** and **this repo** to the official [Stock Markets Analytics Zoomcamp project rubric](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp/blob/main/projects/README.md) (maximum **36** points; **minimum 6** from the **bold** checkboxes in sections 1–6). Peer reviewers use the course form — **do not inflate scores** here; follow the **Evidence** links.
+
+| Submitted to course form | Role |
+|--------------------------|------|
+| [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) @ [`dd4cd5a`](https://github.com/zakard114/ZoomCamp/commit/dd4cd5a) | **Graded pipeline** — data → features → RandomForest → vector simulation → `run.py` / `project.ipynb` |
+| **This repo** (`signal-desk`) + https://signal-desk-c3dx.onrender.com | **LiP / portfolio** — frozen artifact API, desk UI, Ops monitoring, Render deploy |
+
+| # | Rubric block (official) | Max | Evidence (where to verify) |
+|---|-------------------------|-----|----------------------------|
+| 1 | **Problem description** | 4 | Capstone: [Problem](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#problem) in `SMA/Project` README; portfolio framing: [Mission](#mission) + [Problem](#problem) here |
+| 2 | **Data sources** | 4 | Capstone: [Data sources (lecture)](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#data-sources-lecture) — YFinance / TA / FRED combined parquet (local path, not on GitHub) |
+| 3 | **Data transformations + EDA** | 3 | Capstone: `src/features.py` `FEATURE_SETS` (TO_PREDICT, NUMERIC, DUMMIES) — [`features.py`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/features.py) |
+| 4 | **Modeling** | 5 | Capstone: `RandomForestClassifier` in `src/modeling.py`; threshold rule `pred_rf_0.55` — [Model & strategy](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#model--strategy) |
+| 5 | **Trading simulation** | 8 | Capstone: vector sim, fees, CAGR — `src/simulation.py`, verified table in [SMA/Project README](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#verified-run-local-2026-11-18); six cutoffs in `ops/export_artifacts.py` → `artifacts/latest.json` |
+| 6 | **Automation** | 5 | Capstone: `run.py` + `project.ipynb` orchestration, `requirements.txt` — [Reproduce](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#reproduce); **this repo:** `ops/export_artifacts.py` (artifact refresh), [Quick start](#quick-start), `Dockerfile` |
+| 7 | **Bonus** | 7 | **This repo:** containerization ([`Dockerfile`](Dockerfile)); cloud deploy ([Cloud deployment](#cloud-deployment), [`render.yaml`](render.yaml)); monitoring dashboard (**Ops → Grafana**, [`docs/OPS.md`](docs/OPS.md), [Screenshots](#screenshots)); modular `app/` + `static/` layout. Peer discretionary bonus: reviewer decides (+1–2). |
+
+**Bold floor (official minimum):** items marked **bold** in rubric sections 1–6 are implemented in `SMA/Project` @ `dd4cd5a` (see capstone README and `run.py` output). Remaining rubric checkboxes (extra features, second strategy, cron, benchmark, etc.) are **optional** — not claimed in this table unless you add evidence in the capstone repo first.
+
+### Quick verification commands
+
+```powershell
+# Capstone pipeline (replace clone path):
+cd E:\IT_SPACES\AI\ZoomCamp\SMA\Project
+E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe run.py
+
+# This repo — API + artifact:
+cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals
+uvicorn app.main:app --port 8080
+# Smoke: GET http://127.0.0.1:8080/v1/threshold-grid  →  "count": 6
+```
+
+Course submission (2026 attempt 1): https://courses.datatalks.club/sma-zoomcamp-2026/project/project1
+
+[↑ Contents](#table-of-contents)
+
+---
+
 ## Cloud deployment
 
 **Official public face:** Render web service `signal-desk` ([`render.yaml`](render.yaml)).
@@ -302,9 +343,10 @@ Full symptoms, causes, and fixes: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTI
 
 ---
 
-## Credits
+## License
 
-- Curriculum and simulation methodology: [Stock Markets Analytics Zoomcamp](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp) (Modules 02–04).
-- Combined parquet (YFinance, TA features, FRED macro) is built locally per course materials—not stored in this repo. Re-export with `ops/export_artifacts.py` against your local data tree.
+- **Code:** [MIT](LICENSE)
+- **Artifacts:** `artifacts/latest.json` contains exported simulation KPIs and signal rows from the author’s local training run — not live market data and not investment advice.
+- **Course materials:** Methodology follows [Stock Markets Analytics Zoomcamp](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp) (Modules 02–04). Combined parquet is built locally per course instructions and is **not** redistributed in this repository.
 
 [↑ Contents](#table-of-contents)
