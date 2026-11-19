@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/static/app.css?v=20261119-ops" />
+    <link rel="stylesheet" href="/static/app.css?v=20261119-board3" />
   </head>
   <body class="mode-desk">
     <div class="chrome">
@@ -133,12 +133,14 @@
 
           <div data-panel="log" hidden>
             <div class="eyebrow">Log</div>
+            <h2 class="entry-title">Session log</h2>
             <p class="note">Session log of API calls from this browser (desk + Ops).</p>
             <ul class="log-list" id="log-list"></ul>
           </div>
 
           <div data-panel="api" hidden>
             <div class="eyebrow">API</div>
+            <h2 class="entry-title">HTTP routes</h2>
             <p class="note">Same-origin FastAPI on this host. <strong>Try</strong> uses the desk threshold. Advanced: <a href="/docs" target="_blank" rel="noopener">OpenAPI /docs</a>.</p>
             <table class="api-table api-try">
               <thead>
@@ -179,7 +181,7 @@
             <div class="eyebrow">Grafana</div>
             <h2 class="entry-title">Request board</h2>
             <p class="note" id="grafana-status">
-              Request rate (rps), P95/P99 latency lines (ms), latency histogram, simulation CAGR trail, and server audit. No external Grafana server.
+              Last 15 minutes · in-process audit (saffron / sea / dark). Simulation CAGR is on the Inspector tab.
             </p>
             <div class="metrics" id="board-metrics">
               <div class="metric"><span class="m-label">Requests</span><strong id="m-requests">0</strong></div>
@@ -189,35 +191,37 @@
               <div class="metric"><span class="m-label">Errors</span><strong id="m-high" class="ok">0</strong></div>
               <div class="metric"><span class="m-label">Threshold</span><strong id="m-thr">0.55</strong></div>
             </div>
-            <div class="chart-card chart-pro">
-              <h3>Request rate (rps)</h3>
-              <svg id="chart-rate" viewBox="0 0 640 180" role="img" aria-label="Requests per second"></svg>
-              <div class="legend" id="rate-legend"></div>
-            </div>
-            <div class="chart-grid-2">
-              <div class="chart-card chart-pro">
-                <h3>Latency P95 / P99</h3>
+            <div class="board-grid-3">
+              <div class="chart-card chart-pro chart-panel">
+                <h3>Request rate</h3>
+                <svg id="chart-rate" viewBox="0 0 640 180" role="img" aria-label="Requests per second"></svg>
+                <div class="legend" id="rate-legend"></div>
+              </div>
+              <div class="chart-card chart-pro chart-panel">
+                <h3>Error ratio</h3>
+                <svg id="chart-error" viewBox="0 0 640 180" role="img" aria-label="HTTP error ratio"></svg>
+                <div class="legend" id="error-legend"></div>
+              </div>
+              <div class="chart-card chart-pro chart-panel">
+                <h3>Latency P95</h3>
                 <svg id="chart-latency" viewBox="0 0 640 180" role="img" aria-label="P95 and P99 latency"></svg>
                 <div class="legend" id="latency-legend"></div>
               </div>
-              <div class="chart-card chart-pro">
-                <h3>Latency distribution</h3>
+            </div>
+            <div class="board-grid-mid">
+              <div class="chart-card chart-pro chart-panel">
+                <h3>Duration distribution</h3>
                 <svg id="chart-latency-hist" viewBox="0 0 640 180" role="img" aria-label="Latency histogram"></svg>
                 <div class="legend" id="lat-hist-legend"></div>
               </div>
+              <div class="chart-card chart-pro chart-panel chart-panel-compact">
+                <h3>Status mix</h3>
+                <svg id="chart-status" viewBox="0 0 640 180" role="img" aria-label="HTTP status counts"></svg>
+                <div class="legend" id="status-legend"></div>
+              </div>
             </div>
-            <div class="chart-card chart-pro">
-              <h3>Simulation CAGR (recent)</h3>
-              <svg id="chart-cagr" viewBox="0 0 640 180" role="img" aria-label="CAGR over recent simulations"></svg>
-              <div class="legend" id="cagr-legend"></div>
-            </div>
-            <div class="chart-card chart-pro">
-              <h3>Status mix</h3>
-              <svg id="chart-status" viewBox="0 0 640 180" role="img" aria-label="HTTP status counts"></svg>
-              <div class="legend" id="status-legend"></div>
-            </div>
-            <div class="chart-card">
-              <h3>Audit log</h3>
+            <div class="chart-card chart-audit">
+              <h3>Request audit</h3>
               <p class="note" id="audit-filter">Recent requests on this process.</p>
               <div class="audit">
                 <table class="api-table board-table audit-table">
@@ -242,6 +246,6 @@
       </section>
     </div>
 
-    <script src="/static/app.js?v=20261119-ops"></script>
+    <script src="/static/app.js?v=20261119-board3"></script>
   </body>
 </html>

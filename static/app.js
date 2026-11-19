@@ -104,12 +104,15 @@ function chartGridParts(ceiling, innerW, innerH, padL, padT, width, padR, gridOp
     const y = padT + innerH - (innerH * tick) / 3;
     const label = (ceiling * tick) / 3;
     let text;
-    if (opts.axisMs) {
+    if (opts.axisPercent) {
+      text = `${Math.round((label / ceiling) * 100)}%`;
+    } else if (opts.axisMs) {
       text = label >= 100 ? label.toFixed(0) : label >= 10 ? label.toFixed(0) : label.toFixed(1);
+      text += ySuffix;
     } else {
       text = ceiling >= 10 ? label.toFixed(0) : label.toFixed(2);
+      text += ySuffix;
     }
-    text += ySuffix;
     parts.push(
       `<line x1="${padL}" y1="${y}" x2="${width - padR}" y2="${y}" stroke="${GRID}" stroke-width="1" />`
     );
@@ -118,6 +121,33 @@ function chartGridParts(ceiling, innerW, innerH, padL, padT, width, padR, gridOp
     );
   }
   return parts;
+}
+
+function chartTimeFooter(parts, padL, innerW, baseY, width, padR) {
+  const labels = ["−15m", "−10m", "−5m", "now"];
+  labels.forEach((label, i) => {
+    const x = padL + (innerW * i) / (labels.length - 1);
+    parts.push(
+      `<text x="${x.toFixed(1)}" y="${baseY + 16}" fill="${AXIS}" font-size="9" text-anchor="middle">${label}</text>`
+    );
+  });
+  parts.push(
+    `<line x1="${padL}" y1="${baseY + 1}" x2="${width - padR}" y2="${baseY + 1}" stroke="${GRID}" stroke-width="1" />`
+  );
+}
+
+function bucketErrorRatios(buckets) {
+  return buckets.map((bucket) => {
+    const rates = bucket.rates || {};
+    let err = 0;
+    let total = 0;
+    Object.entries(rates).forEach(([code, rps]) => {
+      const v = Number(rps) || 0;
+      total += v;
+      if (Number(code) >= 400) err += v;
+    });
+    return total > 0 ? err / total : 0;
+  });
 }
 
 function seriesPoints(values, innerW, innerH, padL, padT, ceiling) {
@@ -163,6 +193,7 @@ function drawLineChart(svg, seriesList, yMax, gridOpts) {
   const { l: padL, r: padR, t: padT, b: padB } = CHART_PAD;
   const innerW = CHART_W - padL - padR;
   const innerH = CHART_H - padT - padB;
+  const baseY = padT + innerH;
   const ceiling = yMax > 0 ? yMax : 1;
   const parts = chartGridParts(ceiling, innerW, innerH, padL, padT, CHART_W, padR, gridOpts);
   seriesList.forEach((seriesItem) => {
@@ -180,10 +211,46 @@ function drawLineChart(svg, seriesList, yMax, gridOpts) {
       }
     });
   });
+  if (!gridOpts?.hideTimeAxis) {
+    chartTimeFooter(parts, padL, innerW, baseY, CHART_W, padR);
+  }
   svg.innerHTML = parts.join("");
 }
 
-function drawStepAreaChart(svg, values, stroke, yMax) {
+function drawObsAreaLineChart(svg, seriesList, yMax, gridOpts) {
+  if (!svg) return;
+  const { l: padL, r: padR, t: padT, b: padB } = CHART_PAD;
+  const innerW = CHART_W - padL - padR;
+  const innerH = CHART_H - padT - padB;
+  const baseY = padT + innerH;
+  const ceiling = yMax > 0 ? yMax : 1;
+  const parts = chartGridParts(ceiling, innerW, innerH, padL, padT, CHART_W, padR, gridOpts);
+  let defs = "";
+  seriesList.forEach((seriesItem, si) => {
+    const values = seriesItem.values || [];
+    if (!values.length) return;
+    const stroke = seriesItem.color;
+    const pts = seriesPoints(values, innerW, innerH, padL, padT, ceiling);
+    const line = pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    if (seriesItem.area) {
+      const gradId = `obs-${svg.id || "o"}-${si}`;
+      defs += `<linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${stroke}" stop-opacity="0.55"/><stop offset="88%" stop-color="${stroke}" stop-opacity="0.08"/><stop offset="100%" stop-color="${stroke}" stop-opacity="0"/></linearGradient>`;
+      const poly = `${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")} ${pts[pts.length - 1].x.toFixed(1)},${baseY} ${pts[0].x.toFixed(1)},${baseY}`;
+      parts.push(`<polygon points="${poly}" fill="url(#${gradId})" />`);
+    }
+    parts.push(
+      `<polyline fill="none" stroke="${stroke}" stroke-width="${seriesItem.area ? 2.25 : 1.75}" stroke-linecap="round" stroke-linejoin="round" points="${line}" />`
+    );
+    if (seriesItem.area && pts.length) {
+      const last = pts[pts.length - 1];
+      parts.push(`<circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3" fill="${stroke}" />`);
+    }
+  });
+  chartTimeFooter(parts, padL, innerW, baseY, CHART_W, padR);
+  svg.innerHTML = `<defs>${defs}</defs>${parts.join("")}`;
+}
+
+function drawStepAreaChart(svg, values, stroke, yMax, gridOpts) {
   if (!svg) return;
   if (!values.length) {
     svg.innerHTML = "";
@@ -213,6 +280,7 @@ function drawStepAreaChart(svg, values, stroke, yMax) {
   const defs = `<linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${stroke}" stop-opacity="0.55"/><stop offset="100%" stop-color="${stroke}" stop-opacity="0.02"/></linearGradient>`;
   parts.push(`<path d="${areaD}" fill="url(#${gradId})" />`);
   parts.push(`<path fill="none" stroke="${stroke}" stroke-width="2.25" d="${lineD}" />`);
+  chartTimeFooter(parts, padL, innerW, baseY, CHART_W, padR);
   svg.innerHTML = `<defs>${defs}</defs>${parts.join("")}`;
 }
 
@@ -294,39 +362,44 @@ function paintCharts(board) {
   );
   const rateMax = Math.max(...rateValues, 0.01);
   drawStepAreaChart(document.getElementById("chart-rate"), rateValues, SEA, rateMax);
-  renderLegend("rate-legend", [{ color: SEA, label: "Total rps (all statuses)" }]);
+  renderLegend("rate-legend", [{ color: SEA, label: "rps (all statuses)" }]);
+
+  const errRatios = bucketErrorRatios(buckets);
+  const errMax = Math.max(...errRatios, 0.05, 0.01);
+  drawLineChart(
+    document.getElementById("chart-error"),
+    [{ color: RISK, values: errRatios }],
+    errMax,
+    { axisPercent: true }
+  );
+  renderLegend("error-legend", [{ color: RISK, label: "4xx+5xx / total" }]);
 
   const p95 = buckets.map((bucket) => Number(bucket.p95 || 0));
   const p99 = buckets.map((bucket) => Number(bucket.p99 || 0));
   let latMax = Math.max(...p95, ...p99, 0);
-  const latSeries = [
-    { color: HOLD, values: p95 },
-    { color: SAFFRON, values: p99 },
-  ];
+  const latGridOpts = { axisMs: true, ySuffix: " ms" };
   const rawLat = (board.series && board.series.latency_ms) || [];
-  let latGridOpts = { axisMs: true, ySuffix: " ms" };
+  let latSeries;
   if (latMax === 0 && rawLat.length) {
-    latSeries.length = 0;
-    latSeries.push({ color: HOLD, values: rawLat.map(Number) });
+    latSeries = [{ color: SAFFRON, area: true, values: rawLat.map(Number) }];
     latMax = Math.max(...rawLat, 1);
-    renderLegend("latency-legend", [{ color: HOLD, label: "Latency (per request)" }]);
+    renderLegend("latency-legend", [{ color: SAFFRON, label: "Latency (per request)" }]);
   } else {
     latMax = Math.max(latMax, 1);
+    latSeries = [
+      { color: SAFFRON, area: true, values: p95 },
+      { color: SEA, values: p99 },
+    ];
     renderLegend("latency-legend", [
-      { color: HOLD, label: "P95" },
-      { color: SAFFRON, label: "P99" },
+      { color: SAFFRON, label: "P95" },
+      { color: SEA, label: "P99" },
     ]);
   }
-  drawLineChart(document.getElementById("chart-latency"), latSeries, latMax, latGridOpts);
+  drawObsAreaLineChart(document.getElementById("chart-latency"), latSeries, latMax, latGridOpts);
 
   const auditLat = (board.audit || []).map((r) => Number(r.latency_ms)).filter((v) => !Number.isNaN(v));
   drawHistogram(document.getElementById("chart-latency-hist"), auditLat, SAFFRON);
   renderLegend("lat-hist-legend", [{ color: SAFFRON, label: `Recent requests (n=${auditLat.length})` }]);
-
-  const cagrP = (board.series && board.series.cagr_p) || [];
-  const cagrMax = Math.max(...cagrP, 1.05);
-  drawAreaChart(document.getElementById("chart-cagr"), [{ color: SAFFRON, values: cagrP.map(Number) }], cagrMax);
-  renderLegend("cagr-legend", [{ color: SAFFRON, label: "cagr_approx" }]);
 
   const counts = board.status_counts || {};
   const barItems = Object.keys(counts)
