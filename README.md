@@ -4,7 +4,7 @@
 
 **US equity ML signals — FastAPI + ledger UI over frozen simulation artifacts.**
 
-Built as a portfolio demo alongside [Stock Markets Analytics Zoomcamp](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp) (personal study materials @ `dd4cd5a`).
+Built as a portfolio demo alongside [Stock Markets Analytics Zoomcamp](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp) (capstone pipeline in [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project)).
 
 **Live demo (Render):** https://signal-desk-c3dx.onrender.com  
 **OpenAPI:** https://signal-desk-c3dx.onrender.com/docs  
@@ -245,21 +245,21 @@ Maps the **course capstone** and **this repo** to the official [Stock Markets An
 
 | Submitted to course form | Role |
 |--------------------------|------|
-| [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) @ [`dd4cd5a`](https://github.com/zakard114/ZoomCamp/commit/dd4cd5a) | **Graded pipeline** — data → features → RandomForest → vector simulation → `run.py` / `project.ipynb` |
+| [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) | **Graded pipeline** — data → features → RF/DT → multi-strategy sim → `run.py` / `project.ipynb` |
 | **This repo** (`signal-desk`) + https://signal-desk-c3dx.onrender.com | **LiP / portfolio** — frozen artifact API, desk UI, Ops monitoring, Render deploy |
 
 | # | Rubric block (official) | Max | Claimed | Evidence |
 |---|-------------------------|-----|---------|----------|
-| 1 | **Problem description** | 4 | 2 | [`SMA/Project` problem](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#problem); [Mission](#mission) + [Problem](#problem) on this README |
-| 2 | **Data sources** | 4 | 1 | [Lecture sources](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#data-sources-lecture) (YFinance / TA / FRED parquet — local, not on GitHub) |
-| 3 | **Data transformations + EDA** | 3 | 1 | [`FEATURE_SETS`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/features.py) in `src/features.py` |
-| 4 | **Modeling** | 5 | 1 | [`RandomForestClassifier`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#model--strategy), `pred_rf_0.55` |
-| 5 | **Trading simulation** | 8 | 1 | Vector sim + fees + CAGR in `src/simulation.py`; [verified run](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#verified-run-local-2026-11-18); six cutoffs → [`artifacts/latest.json`](artifacts/latest.json) via `ops/export_artifacts.py` |
-| 6 | **Automation** | 5 | 2 | [`run.py`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#reproduce) + `project.ipynb`, `requirements.txt`; this repo: [Quick start](#quick-start), [`Dockerfile`](Dockerfile), `ops/export_artifacts.py` |
-| 7 | **Bonus** | 7 | 3 | Container ([`Dockerfile`](Dockerfile)), cloud ([Cloud deployment](#cloud-deployment)), monitoring ([Ops → Grafana](#ops-overlay-inspector--log--api--grafana), [`docs/OPS.md`](docs/OPS.md)). Peer discretionary (+1–2) not self-scored. |
-| | **Total (self-assessment)** | **36** | **11** | Official rubric caps at 36; course requires **≥6** from **bold** rows in sections 1–6 (bold items evidenced in `SMA/Project` @ `dd4cd5a` — run `run.py`). |
+| 1 | **Problem description** | 4 | 3 | [`SMA/Project` problem](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#problem); [`docs/FINDINGS.md`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project/docs/FINDINGS.md); [Mission](#mission) + [Problem](#problem) |
+| 2 | **Data sources** | 4 | 2 | [Lecture sources](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#data-sources-lecture); [20+ derived features](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#derived-features-rubric-2--20-documented) (local parquet on E:) |
+| 3 | **Data transformations + EDA** | 3 | 3 | [`FEATURE_SETS`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/features.py); `run_eda.py` + [`src/eda.py`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/eda.py) |
+| 4 | **Modeling** | 5 | 4 | RF + DT ([`modeling.py`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/modeling.py)); thresholds `0.55`/`0.57`; [`src/tuning.py`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/tuning.py) |
+| 5 | **Trading simulation** | 8 | 5 | Multi-strategy + [`benchmark.py`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/benchmark.py) (CAGR, Sharpe, drawdown, passive baseline); desk grid → [`artifacts/latest.json`](artifacts/latest.json) |
+| 6 | **Automation** | 5 | 4 | [`run.py`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#reproduce), `project.ipynb`, [`docs/AUTOMATION.md`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project/docs/AUTOMATION.md); [`Dockerfile`](Dockerfile), `ops/export_artifacts.py` |
+| 7 | **Bonus** | 7 | 4 | Container, cloud ([Cloud deployment](#cloud-deployment)), monitoring ([Ops → Grafana](#ops-overlay-inspector--log--api--grafana)). Peer subjective (+1–2) not in **Claimed**. |
+| | **Total (self-assessment)** | **36** | **25** | **≥6** from **bold** rows in 1–6 evidenced in [`SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) (`run.py`, `run_eda.py`). |
 
-**Claimed** = author self-score against the [official checklist](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp/blob/main/projects/README.md) only where evidence is linked; peers and the course form decide the final score. Optional rubric rows (second strategy, cron, benchmark, …) are **not** counted in **Claimed** until documented.
+**Claimed** = self-score only where linked evidence exists in the capstone repo + this portfolio layer. Not counted: 1M-row dataset, novel API, exact `iterrows` sim, broker API, peer discretionary bonus. Peers and the course form decide the final score.
 
 ### Quick verification commands
 
