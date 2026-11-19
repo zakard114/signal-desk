@@ -390,17 +390,20 @@ function nearestFromGrid(threshold) {
 }
 
 function renderKpis(sim) {
+  const pnl = sim.net_pnl_usd;
+  const pnlClass =
+    pnl != null && !Number.isNaN(Number(pnl)) && Number(pnl) < 0 ? "kpi-pnl-neg" : "kpi-pnl-pos";
   const cards = [
-    ["CAGR (approx.)", fmtNum(sim.cagr_approx, 3)],
-    ["Net P&L (USD)", fmtNum(sim.net_pnl_usd, 1)],
-    ["Test trades", fmtNum(sim.test_trades, 0)],
-    ["Assumed capital", fmtNum(sim.assumed_capital_usd, 0)],
+    ["CAGR (approx.)", fmtNum(sim.cagr_approx, 3), "kpi-cagr"],
+    ["Net P&L (USD)", fmtNum(sim.net_pnl_usd, 1), pnlClass],
+    ["Test trades", fmtNum(sim.test_trades, 0), ""],
+    ["Assumed capital", fmtNum(sim.assumed_capital_usd, 0), ""],
   ];
   const el = document.getElementById("kpis");
   el.innerHTML = cards
     .map(
-      ([label, value]) =>
-        `<div class="kpi flash"><label>${label}</label><div class="value">${value}</div></div>`
+      ([label, value, valueClass]) =>
+        `<div class="kpi flash"><label>${label}</label><div class="value ${valueClass}">${value}</div></div>`
     )
     .join("");
   window.setTimeout(() => el.querySelectorAll(".kpi").forEach((k) => k.classList.remove("flash")), 400);
@@ -414,7 +417,7 @@ function renderSignals(rows, filter) {
     ? filtered
         .map(
           (r) =>
-            `<tr><td class="num">${r.date}</td><td class="ticker">${r.ticker}</td><td>${r.ticker_type || ""}</td></tr>`
+            `<tr><td class="num">${r.date}</td><td class="ticker">${r.ticker}</td><td class="signal-type">${r.ticker_type || ""}</td></tr>`
         )
         .join("")
     : `<tr class="empty-row"><td colspan="3">No signals match filter.</td></tr>`;
@@ -432,6 +435,31 @@ function readControls() {
 function syncThresholdLabel() {
   const v = document.getElementById("threshold").value;
   document.getElementById("threshold-val").textContent = parseFloat(v).toFixed(2);
+}
+
+function defaultDeskControls() {
+  const grid = state.thresholdGrid.length ? state.thresholdGrid : MOCK_GRID;
+  const thr =
+    grid.find((r) => r.threshold === 0.55)?.threshold ??
+    grid[0]?.threshold ??
+    0.55;
+  return {
+    threshold: thr,
+    notional: state.defaults.trade_notional_usd || 100,
+    fee: state.defaults.fee_rate || 0.002,
+    tickerFilter: "",
+  };
+}
+
+async function resetDeskInputs() {
+  const d = defaultDeskControls();
+  document.getElementById("threshold").value = String(d.threshold);
+  document.getElementById("notional").value = String(d.notional);
+  document.getElementById("fee").value = String(d.fee);
+  document.getElementById("ticker-filter").value = "";
+  syncThresholdLabel();
+  syncApiSample();
+  await runSimulation();
 }
 
 function refreshInspector() {
@@ -655,6 +683,7 @@ function bindUi() {
     }
   });
   document.getElementById("btn-run").addEventListener("click", () => runSimulation());
+  document.getElementById("btn-reset").addEventListener("click", () => resetDeskInputs());
   document.getElementById("ticker-filter").addEventListener("input", () => {
     const { threshold, tickerFilter } = readControls();
     if (state.useApi) {

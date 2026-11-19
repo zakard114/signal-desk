@@ -30,6 +30,10 @@ Scales **Net P&L** and **Assumed capital** only; **CAGR (approx.) unchanged** (c
 
 Weak effect on P&L (heuristic fee factor). Do not expect large KPI jumps; use threshold/notional for demos.
 
+## Reset
+
+**Reset inputs** restores threshold **0.55**, notional **100**, fee **0.002**, clears ticker filter, and re-runs simulation.
+
 ## 4. Ticker filter
 
 Filters the **signals table only**; KPI cards stay the same. Try `RELIANCE` at 0.55, then `ZZZZ` for empty table.

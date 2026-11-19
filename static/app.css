@@ -9,6 +9,7 @@
   --accent: #d4a24c;
   --accent-dim: rgba(212, 162, 76, 0.15);
   --loss: #c47a7a;
+  --hold: #6dcca4;
   --radius: 12px;
   --radius-sm: 8px;
   --font-ui: "Source Sans 3", "Segoe UI", sans-serif;
@@ -30,7 +31,7 @@ body {
 }
 
 .hero {
-  padding: 2.25rem 1.5rem 2rem;
+  padding: 1.85rem 1.5rem 2rem;
   background: radial-gradient(ellipse 80% 60% at 50% -20%, var(--accent-dim), transparent 55%),
     linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg) 100%);
   border-bottom: 1px solid var(--border);
@@ -261,6 +262,64 @@ input[type="text"]:focus {
   font-family: var(--font-mono);
   font-size: 1.15rem;
   font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.kpi .value.kpi-cagr {
+  color: var(--accent);
+}
+
+.kpi .value.kpi-pnl-pos {
+  color: var(--hold);
+}
+
+.kpi .value.kpi-pnl-neg {
+  color: var(--loss);
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+  margin-top: 0.15rem;
+}
+
+.cta-row .btn-primary {
+  flex: 1 1 8rem;
+  width: auto;
+}
+
+.btn-reset {
+  flex: 0 1 auto;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-reset:hover {
+  border-color: rgba(212, 162, 76, 0.4);
+  color: var(--text);
+}
+
+td.ticker {
+  color: var(--accent);
+}
+
+td.signal-type {
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .table-wrap h2 {
@@ -380,7 +439,7 @@ body.mode-ops .ops-corner {
 }
 
 #desk-shell {
-  padding-top: 2.5rem;
+  padding-top: 2.15rem;
 }
 
 #desk-shell[hidden],
