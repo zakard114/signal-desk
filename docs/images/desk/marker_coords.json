@@ -1,15 +1,16 @@
 {
   "source_capture": "1360x1112",
-  "source_viewport": "1360x900",
+  "layout_viewport_h": 900,
+  "note": "dom_x/dom_y = getBoundingClientRect center at 1360x900; mapped via content_bbox scale into PNG",
   "markers": [
-    { "label": "1", "x": 0.5, "y": 0.166 },
-    { "label": "2", "x": 0.229, "y": 0.35 },
-    { "label": "3", "x": 0.228, "y": 0.489 },
-    { "label": "b", "x": 0.228, "y": 0.598, "small": true },
-    { "label": "4", "x": 0.18, "y": 0.665 },
-    { "label": "5", "x": 0.625, "y": 0.352 },
-    { "label": "6", "x": 0.625, "y": 0.439 },
-    { "label": "7", "x": 0.625, "y": 0.573 },
-    { "label": "8", "x": 0.97, "y": 0.027 }
+    { "label": "1", "dom_x": 680, "dom_y": 193, "target": "Hero + run-meta (#run-meta)" },
+    { "label": "2", "dom_x": 312, "dom_y": 389, "target": "Probability threshold (#threshold)" },
+    { "label": "3", "dom_x": 310, "dom_y": 544, "target": "Notional / fee (mid #notional-#fee)" },
+    { "label": "b", "dom_x": 310, "dom_y": 665, "target": "Ticker filter", "small": true },
+    { "label": "4", "dom_x": 245, "dom_y": 739, "target": "Update simulation (#btn-run)" },
+    { "label": "5", "dom_x": 850, "dom_y": 391, "target": "Simulation KPIs (#kpis)" },
+    { "label": "6", "dom_x": 850, "dom_y": 489, "target": "Recent runs (#run-history)" },
+    { "label": "7", "dom_x": 850, "dom_y": 637, "target": "Latest signals (.table-wrap)" },
+    { "label": "8", "dom_x": 1319, "dom_y": 30, "target": "Ops (#open-ops)" }
   ]
 }

@@ -13,6 +13,7 @@ COORDS = ROOT / "docs" / "images" / "desk" / "marker_coords.json"
 
 NEON = (255, 72, 72, 255)
 NEON_GLOW = (255, 72, 72, 72)
+LAYOUT_VIEWPORT_H = 900
 
 FONT_CANDIDATES = (
     "C:/Windows/Fonts/segoeuib.ttf",
@@ -28,6 +29,30 @@ def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
         except OSError:
             continue
     return ImageFont.load_default()
+
+
+def content_bbox(im: Image.Image, pad: int = 6) -> tuple[int, int, int, int]:
+    rgb = im.convert("RGB")
+    w, h = rgb.size
+    px = rgb.load()
+    min_x, min_y = w, h
+    max_x, max_y = 0, 0
+    for y in range(h):
+        for x in range(w):
+            r, g, b = px[x, y]
+            if r > 24 or g > 24 or b > 28:
+                min_x = min(min_x, x)
+                max_x = max(max_x, x)
+                min_y = min(min_y, y)
+                max_y = max(max_y, y)
+    if max_x <= min_x:
+        return 0, 0, w, h
+    return (
+        max(0, min_x - pad),
+        max(0, min_y - pad),
+        min(w, max_x + pad + 1),
+        min(h, max_y + pad + 1),
+    )
 
 
 def marker_box(
@@ -47,14 +72,35 @@ def marker_box(
     return half, pad, side
 
 
-def load_markers() -> list[tuple[float, float, str, bool]]:
-    if COORDS.exists():
-        data = json.loads(COORDS.read_text(encoding="utf-8"))
-        out: list[tuple[float, float, str, bool]] = []
-        for m in data["markers"]:
-            out.append((float(m["x"]), float(m["y"]), str(m["label"]), bool(m.get("small", False))))
-        return out
-    raise FileNotFoundError(f"Missing {COORDS}")
+def layout_pixel_to_norm(
+    dom_x: float,
+    dom_y: float,
+    img_w: int,
+    img_h: int,
+    box: tuple[int, int, int, int],
+    layout_h: float = LAYOUT_VIEWPORT_H,
+) -> tuple[float, float]:
+    _l, t, _r, b = box
+    ch = max(1, b - t)
+    cy = t + dom_y * (ch / layout_h)
+    cx = dom_x
+    return cx / img_w, cy / img_h
+
+
+def load_markers(im: Image.Image) -> list[tuple[float, float, str, bool]]:
+    data = json.loads(COORDS.read_text(encoding="utf-8"))
+    box = content_bbox(im)
+    layout_h = float(data.get("layout_viewport_h", LAYOUT_VIEWPORT_H))
+    out: list[tuple[float, float, str, bool]] = []
+    for m in data["markers"]:
+        if "dom_x" in m and "dom_y" in m:
+            x, y = layout_pixel_to_norm(
+                float(m["dom_x"]), float(m["dom_y"]), im.size[0], im.size[1], box, layout_h
+            )
+        else:
+            x, y = float(m["x"]), float(m["y"])
+        out.append((x, y, str(m["label"]), bool(m.get("small", False))))
+    return out
 
 
 def draw_marker(
@@ -78,11 +124,12 @@ def draw_marker(
 def main() -> None:
     im = Image.open(SRC).convert("RGBA")
     w, h = im.size
+    box = content_bbox(im)
     overlay = Image.new("RGBA", im.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
     font_size = max(13, int(min(w, h) * 0.018))
     font = load_font(font_size)
-    markers = load_markers()
+    markers = load_markers(im)
 
     for xp, yp, label, small in markers:
         cx, cy = int(xp * w), int(yp * h)
@@ -91,7 +138,7 @@ def main() -> None:
     out = Image.alpha_composite(im, overlay).convert("RGB")
     DST.parent.mkdir(parents=True, exist_ok=True)
     out.save(DST, format="PNG", optimize=True)
-    print(f"Wrote {DST} ({w}x{h})")
+    print(f"Wrote {DST} ({w}x{h}) content_box={box}")
 
 
 if __name__ == "__main__":
