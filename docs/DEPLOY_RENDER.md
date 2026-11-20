@@ -47,10 +47,11 @@ First request after idle can take ~30s. If `/health` fails once, retry. See [TRO
 
 Render does **not** run training. Refresh JSON locally from this repo’s [`pipeline/`](../pipeline/) (see [`PIPELINE.md`](PIPELINE.md)):
 
-```powershell
-. E:\IT_SPACES\AI\scripts\use_e_drive.ps1
-cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe ops\export_artifacts.py
+```bash
+cd <your-clone-root>
+python ops/export_artifacts.py
 ```
+
+Requires local parquet and a working `pipeline/` env — see [`PIPELINE.md`](PIPELINE.md).
 
 Commit `artifacts/latest.json` and trigger **Manual Deploy** on Render.

@@ -6,10 +6,9 @@ Lecture-aligned **global equity panel** with a **probability-rule** long-only st
 
 ## Reproduce verified numbers
 
-```powershell
-. E:\IT_SPACES\AI\scripts\use_e_drive.ps1
-cd E:\IT_SPACES\AI\ZoomCamp\SMA\Project
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe run.py
+```bash
+cd <your-clone-root>/pipeline
+python run.py
 ```
 
 Expect primary `pred_rf_0.55` simulation stats to match [README verified run](../README.md#verified-run-local-2026-11-19) when parquet is unchanged.
@@ -73,4 +72,4 @@ Probability columns `proba_rf` / `proba_dt` are stored on the labeled frame for 
 
 ## Live portfolio layer
 
-Repository root [signal-desk](https://github.com/zakard114/signal-desk) serves `artifacts/latest.json` on Render — does not re-train in the cloud. Run `ops/export_artifacts.py` from the repo root after local `run.py`. Ops **Inspector** can set the desk decision threshold and slider min/max (HoldRisk-style panel).
+Repository root [signal-desk](https://github.com/zakard114/signal-desk) serves `artifacts/latest.json` on Render — does not re-train in the cloud. Run `ops/export_artifacts.py` from the repo root after local `run.py`. Ops **Inspector** exposes desk threshold and slider bounds for demos.

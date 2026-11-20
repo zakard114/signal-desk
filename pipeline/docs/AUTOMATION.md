@@ -28,10 +28,9 @@
 
 Daily predictions (after you refresh parquet overnight):
 
-```powershell
-. E:\IT_SPACES\AI\scripts\use_e_drive.ps1
-cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals\pipeline
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe run.py >> E:\IT_SPACES\AI\.cache\logs\sma-capstone-run.log 2>&1
+```bash
+cd <your-clone-root>/pipeline
+python run.py >> /path/to/sma-capstone-run.log 2>&1
 ```
 
 Windows Task Scheduler: trigger daily, action = above PowerShell one-liner.
@@ -40,9 +39,9 @@ Windows Task Scheduler: trigger daily, action = above PowerShell one-liner.
 
 Signal Desk frozen JSON:
 
-```powershell
-cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe ops\export_artifacts.py
+```bash
+cd <your-clone-root>
+python ops/export_artifacts.py
 ```
 
 Commit `artifacts/latest.json` and redeploy Render when cloud numbers should change.

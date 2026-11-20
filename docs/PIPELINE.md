@@ -4,38 +4,50 @@ All capstone **training, simulation, and analysis** code lives in [`../pipeline/
 
 ## Data (not in Git)
 
-Combined equity panel per course Modules 02–04 (YFinance, TA features, FRED macro, labels). Build or place locally:
+Combined equity panel per [SMA Modules 02–04](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp): **YFinance** prices/volume, **lecture TA/pattern** columns, **FRED** macro, forward-return labels.
 
-`E:/IT_SPACES/AI/ZoomCamp/SMA/04/trading_strategy_and_simulation/stocks_df_combined_2026_09_18.parquet.brotli`
-
-Override path:
+1. **Build** the combined table using course Module 02 instructions (one `stocks_df_combined_*.parquet` or `.parquet.brotli`).
+2. **Point** the pipeline at your file:
 
 ```powershell
-$env:SMA_DATA_PATH = "E:\path\to\your\combined.parquet.brotli"
+$env:SMA_DATA_PATH = "/path/to/stocks_df_combined_2026_09_18.parquet.brotli"
 ```
 
-See [`pipeline/README.md`](../pipeline/README.md) for sources table and feature lists.
+If unset, `pipeline/src/config.py` uses a default path on the author’s machine only — **set `SMA_DATA_PATH` on your clone**.
+
+Feature sources table: [`pipeline/README.md`](../pipeline/README.md).
 
 ## Reproduce
 
-```powershell
-. E:\IT_SPACES\AI\scripts\use_e_drive.ps1
-cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals\pipeline
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe run.py
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe run_analysis.py
+From **repository root** (`<your-clone-root>`):
+
+```bash
+cd pipeline
+python -m venv .venv && source .venv/bin/activate   # or your existing venv
+pip install -r requirements.txt
+pip install -r ../requirements.txt                  # app deps if shared venv
+python run.py
+python run_analysis.py
 ```
+
+PowerShell: same `cd pipeline`, activate venv, `python run.py`.
 
 Deep notes: [`pipeline/docs/FINDINGS.md`](../pipeline/docs/FINDINGS.md).  
 Verified snapshot: [`pipeline/docs/analysis_snapshot.json`](../pipeline/docs/analysis_snapshot.json).
 
 ## Refresh cloud desk numbers
 
-```powershell
-cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe ops\export_artifacts.py
+From repository root:
+
+```bash
+python ops/export_artifacts.py
 git add artifacts/latest.json
 git commit -m "chore: refresh artifacts from pipeline run"
 git push origin main
 ```
 
 Render redeploys from `main` (see root README — deploy section).
+
+## Author machine (optional)
+
+The author uses a fixed Windows data path and `E:` caches; see [`NOTES.md`](NOTES.md#paths-and-clone-roots). Reviewers should use `SMA_DATA_PATH` and their own clone root only.

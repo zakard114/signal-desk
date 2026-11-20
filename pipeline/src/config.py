@@ -6,7 +6,8 @@ import os
 # Project root: .../signal-desk/pipeline
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-# Course combined panel (built locally per SMA Modules 02–04; not in Git)
+# Course combined panel (built locally per SMA Modules 02–04; not in Git).
+# Reviewers: set SMA_DATA_PATH; default below is author-only.
 _DEFAULT_PARQUET = Path(
     r"E:\IT_SPACES\AI\ZoomCamp\SMA\04\trading_strategy_and_simulation"
     r"\stocks_df_combined_2026_09_18.parquet.brotli"

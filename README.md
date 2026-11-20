@@ -8,14 +8,13 @@
 
 **Live demo (Render):** https://signal-desk-c3dx.onrender.com  
 **OpenAPI:** https://signal-desk-c3dx.onrender.com/docs  
-**Repository:** https://github.com/zakard114/signal-desk  
 
 ## For reviewers (start here)
 
 1. **Live app:** https://signal-desk-c3dx.onrender.com  
 2. **ML pipeline (local):** [`docs/PIPELINE.md`](docs/PIPELINE.md) → [`pipeline/run.py`](pipeline/run.py)  
 3. **App only (no training):** [Quick start](#quick-start) below  
-4. **Data:** combined parquet path and download notes in PIPELINE — not stored in Git  
+4. **Training data:** [Data (reproduction)](#data-reproduction) — sources, build, apply path (parquet not in Git)  
 
 Desk + **Ops** (Inspector · Log · API · in-app Grafana tab) on one host. No separate Grafana server on Render.
 
@@ -36,6 +35,7 @@ Parquet, RandomForest fit, and `export_artifacts.py` stay **offline**; Render sh
 - [For reviewers (start here)](#for-reviewers-start-here)
 - [Mission](#mission)
 - [Problem](#problem)
+- [Data (reproduction)](#data-reproduction)
 - [Status](#status)
 - [Quick demo](#quick-demo)
 - [Features](#features)
@@ -50,13 +50,31 @@ Parquet, RandomForest fit, and `export_artifacts.py` stay **offline**; Render sh
 
 ## Problem
 
-Course simulations produce rich KPI grids and signal lists, but sharing them usually means notebooks or static CSVs. Support and portfolio reviewers need:
+The capstone **backtest pipeline** (`pipeline/run.py`) produces rich KPI grids and signal lists, but sharing results often stops at notebooks or static exports. Anyone reviewing the project (peers, course graders) needs:
 
-1. A **live URL** with consistent numbers (not a re-fit on every click).
-2. A **clear UX** between *trying* a threshold (preview) and *recording* it (Update + Ops).
-3. **Operator visibility** — last simulation, API trace, and request-rate charts without a second Grafana deployment.
+1. A **live URL** with stable numbers (no re-training on each visit).
+2. A **clear UX** between *previewing* a threshold (drag) and *recording* it (**Update simulation** + Ops).
+3. **Inspectable ops** — simulation history, API trace, and simple charts on the same host (`GET /ops/board`).
 
-Signal Desk answers (1)–(3) from one committed artifact and one FastAPI process.
+Signal Desk covers (1)–(3) with one committed `artifacts/latest.json` and one FastAPI process.
+
+[↑ Contents](#table-of-contents)
+
+---
+
+## Data (reproduction)
+
+Per [course project rules](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp/blob/main/projects/README.md), **data files are not on GitHub**. Build the combined panel locally (SMA Modules 02–04):
+
+| Source | Role |
+|--------|------|
+| **YFinance** | Prices, volume, corporate actions |
+| **Lecture TA / pattern columns** | Technical features in the combined parquet |
+| **FRED** | Macro (e.g. `FEDFUNDS`, yields, CPI) |
+
+**Apply:** point `SMA_DATA_PATH` at your `stocks_df_combined_*.parquet.brotli`, then run `pipeline/run.py` and optionally `ops/export_artifacts.py` to refresh desk JSON. Step-by-step commands and path override: [`docs/PIPELINE.md`](docs/PIPELINE.md) and [`pipeline/README.md`](pipeline/README.md).
+
+**This repo for grading:** clone → Quick start runs the **app** from committed JSON; full ML reproduction is optional but documented above.
 
 [↑ Contents](#table-of-contents)
 
@@ -86,9 +104,9 @@ Step-by-step scripts: [`docs/DEMO_WALKTHROUGH.md`](docs/DEMO_WALKTHROUGH.md).
 
 - **Web:** threshold slider on the artifact grid, simulation KPIs (preview on drag), latest signals table, client-side ticker filter (**Latest signals** only)
 - **API:** `/v1/threshold-grid`, `/v1/simulation?threshold=`, `/v1/signals/latest?threshold=`, `/health`, `/v1/meta`
-- **Ops:** HoldRisk-style overlay — **Inspector · Log · API · Grafana**; server board `GET /ops/board` (audit, rate/latency charts on the same process)
+- **Ops:** in-browser overlay — **Inspector · Log · API · Grafana** tab; `GET /ops/board` (audit + rate/latency charts in-process)
 
-No parquet in this repository; the cloud image serves committed `artifacts/latest.json` only.
+The cloud image serves committed `artifacts/latest.json` only (see [Data (reproduction)](#data-reproduction) for training data).
 
 [↑ Contents](#table-of-contents)
 
@@ -99,11 +117,11 @@ No parquet in this repository; the cloud image serves committed `artifacts/lates
 **Recommended:** run locally against the committed artifact (no export required for a first look). Use **your clone root** for `cd` ([paths note](docs/NOTES.md#paths-and-clone-roots)).
 
 ```powershell
-# Example path (replace with your clone root):
-cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals
-. E:\IT_SPACES\AI\scripts\use_e_drive.ps1   # optional: author Windows cache on E:
-pip install -r requirements.txt             # or use your venv
-uvicorn app.main:app --port 8080
+cd <your-clone-root>   # repository root after git clone
+python -m venv .venv
+.venv\Scripts\activate          # Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --host 127.0.0.1 --port 8080
 ```
 
 Open http://127.0.0.1:8080/ — badge should show live API when `/v1/meta` loads.
@@ -115,7 +133,7 @@ python ops\export_artifacts.py
 # Commit artifacts/latest.json, push, redeploy Render if you want cloud to match.
 ```
 
-`scripts/use_e_drive.ps1` is optional (author keeps caches on `E:`). Skip it if you use default cache locations.
+Optional Windows cache paths: [`docs/NOTES.md#paths-and-clone-roots`](docs/NOTES.md#paths-and-clone-roots).
 
 [↑ Contents](#table-of-contents)
 

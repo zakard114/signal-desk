@@ -23,7 +23,7 @@ Replace example `cd …` paths with your own clone root. Relative paths (`app/`,
 
 - **Frozen artifact vs live training on Render:** cloud stays fast and cheap; numbers age until you re-export and redeploy. Trade-off: no “train once per visitor.”
 - **Preview on drag vs Update commit:** avoids flooding audit logs and makes Ops meaningful only after an explicit commit. Trade-off: users must click Update to refresh Grafana simulation counters.
-- **In-app Grafana tab vs hosted Grafana:** one Docker service, HoldRisk-style board from in-process audit. Trade-off: not a full Grafana deployment with external datasources.
+- **In-app Grafana tab vs hosted Grafana:** one Docker service, dashboard fed by in-process audit (`/ops/board`). Trade-off: not a full Grafana deployment with external datasources.
 - **Six-point threshold grid only:** slider snaps to nearest artifact row; between-grid drags look flat until the nearest cutoff changes. Trade-off: simpler demo — use **0.55 vs 0.60** for obvious deltas.
 - **Ticker filter client-side:** filters **Latest signals** only; KPIs and Ops unchanged. Trade-off: filter does not call the API.
 

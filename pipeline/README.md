@@ -86,11 +86,12 @@ SMA/Project/
 
 ## Setup (shared ZoomCamp venv on E:)
 
-```powershell
-. E:\IT_SPACES\AI\scripts\use_e_drive.ps1
-cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals\pipeline
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe run.py
+```bash
+cd <your-clone-root>/pipeline
+python run.py
 ```
+
+Set `SMA_DATA_PATH` to your combined parquet (see **Data sources** above). Author default path in `src/config.py` is optional.
 
 Dependencies: `requirements.txt` (shared `ML/.venv` if you completed earlier modules).
 
