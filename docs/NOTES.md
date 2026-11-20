@@ -1,5 +1,32 @@
 # Notes
 
+## Paths and clone roots
+
+Commands in this repo assume you are in the **repository root** after cloning.
+
+| | |
+|--|--|
+| **Your machine** | Whatever path you cloned into, e.g. `~/signal-desk` |
+| **Example (author)** | `E:\IT_SPACES\AI\Projects\sma\us-equity-signals` on Windows — **not required** |
+
+Replace example `cd …` paths with your own clone root. Relative paths (`app/`, `artifacts/`, `ops/`) are the same everywhere.
+
+## Changelog
+
+**2026-11 — desk preview vs system commit**
+
+- Dragging threshold, notional, or fee **previews** KPIs and **Latest signals** from `GET /v1/threshold-grid` (including per-cutoff `latest_signals` when the artifact includes them).
+- **Update simulation** is the only path that hits simulation API for history, refreshes Inspector, and drives **Ops → Grafana** from live audit rows.
+- Red hint under the button when controls diverge from the last commit: *Update simulation applies changes.*
+
+## Design decisions (trade-offs)
+
+- **Frozen artifact vs live training on Render:** cloud stays fast and cheap; numbers age until you re-export and redeploy. Trade-off: no “train once per visitor.”
+- **Preview on drag vs Update commit:** avoids flooding audit logs and makes Ops meaningful only after an explicit commit. Trade-off: users must click Update to refresh Grafana simulation counters.
+- **In-app Grafana tab vs hosted Grafana:** one Docker service, HoldRisk-style board from in-process audit. Trade-off: not a full Grafana deployment with external datasources.
+- **Six-point threshold grid only:** slider snaps to nearest artifact row; between-grid drags look flat until the nearest cutoff changes. Trade-off: simpler demo — use **0.55 vs 0.60** for obvious deltas.
+- **Ticker filter client-side:** filters **Latest signals** only; KPIs and Ops unchanged. Trade-off: filter does not call the API.
+
 ## Artifact-backed demos
 
 Precomputed `artifacts/latest.json` on Render avoids parquet in Git. Regenerate on E: with `ops/export_artifacts.py` (~2 min, one RF fit + six vector sims). Commit JSON and redeploy to refresh cloud KPIs.

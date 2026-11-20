@@ -29,16 +29,13 @@ Parquet, RandomForest fit, and `export_artifacts.py` stay **offline**; Render sh
 - [Mission](#mission)
 - [Problem](#problem)
 - [Status](#status)
-- [Paths (read this first)](#paths-read-this-first)
-- [Recent updates](#recent-updates)
 - [Quick demo](#quick-demo)
 - [Features](#features)
 - [Quick start](#quick-start)
 - [Architecture](#architecture)
-- [Decisions and trade-offs](#decisions-and-trade-offs)
 - [Project structure](#project-structure)
 - [Screenshots](#screenshots)
-- [Evaluation criteria](#evaluation-criteria)
+- [Course rubric (self-check)](#course-rubric-self-check)
 - [Cloud deployment](#cloud-deployment)
 - [Documentation](#documentation)
 - [Troubleshooting](#troubleshooting)
@@ -70,33 +67,6 @@ Signal Desk answers (1)–(3) from one committed artifact and one FastAPI proces
 
 ---
 
-## Paths (read this first)
-
-Commands below assume you are in the **repository root** after cloning.
-
-| | |
-|--|--|
-| **Your machine** | Whatever path you cloned into, e.g. `~/signal-desk` |
-| **Example used in this README** | `E:\IT_SPACES\AI\Projects\sma\us-equity-signals` (author’s Windows layout — **not required**) |
-
-Replace the example `cd …` with your own clone path. Relative paths like `app/`, `artifacts/`, and `ops/` are the same everywhere.
-
-[↑ Contents](#table-of-contents)
-
----
-
-## Recent updates
-
-**2026-11 — desk preview vs system commit**
-
-- Dragging threshold, notional, or fee **previews** KPIs and **Latest signals** from `GET /v1/threshold-grid` (including per-cutoff `latest_signals` when the artifact includes them).
-- **Update simulation** is the only path that hits simulation API for history, refreshes Inspector, and drives **Ops → Grafana** from live audit rows.
-- Red hint under the button when controls diverge from the last commit: *Update simulation applies changes.*
-
-[↑ Contents](#table-of-contents)
-
----
-
 ## Quick demo
 
 **Example:** open the [live demo](https://signal-desk-c3dx.onrender.com), drag threshold **0.55 → 0.60** (watch **Test trades** and signal row count), click **Update simulation**, then open **Ops → Grafana**.
@@ -121,7 +91,7 @@ No parquet in this repository; the cloud image serves committed `artifacts/lates
 
 ## Quick start
 
-**Recommended:** run locally against the committed artifact (no export required for a first look).
+**Recommended:** run locally against the committed artifact (no export required for a first look). Use **your clone root** for `cd` ([paths note](docs/NOTES.md#paths-and-clone-roots)).
 
 ```powershell
 # Example path (replace with your clone root):
@@ -136,7 +106,6 @@ Open http://127.0.0.1:8080/ — badge should show live API when `/v1/meta` loads
 **Refresh artifact** (needs course parquet on your machine — not on Render):
 
 ```powershell
-# After use_e_drive.ps1 and local parquet paths configured:
 python ops\export_artifacts.py
 # Commit artifacts/latest.json, push, redeploy Render if you want cloud to match.
 ```
@@ -173,18 +142,6 @@ flowchart LR
 ```
 
 Step-by-step Mermaid (TD) and ASCII: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
-
-[↑ Contents](#table-of-contents)
-
----
-
-## Decisions and trade-offs
-
-- **Frozen artifact vs live training on Render:** cloud stays fast and cheap; numbers age until you re-export and redeploy. Trade-off: no “train once per visitor.”
-- **Preview on drag vs Update commit:** avoids flooding audit logs and makes Ops meaningful only after an explicit commit. Trade-off: users must click Update to refresh Grafana simulation counters.
-- **In-app Grafana tab vs hosted Grafana:** one Docker service, HoldRisk-style board from in-process audit. Trade-off: not a full Grafana deployment with external datasources.
-- **Six-point threshold grid only:** slider snaps to nearest artifact row; between-grid drags look flat until the nearest cutoff changes. Trade-off: simpler demo — use **0.55 vs 0.60** for obvious deltas.
-- **Ticker filter client-side:** filters **Latest signals** only; KPIs and Ops unchanged. Trade-off: filter does not call the API.
 
 [↑ Contents](#table-of-contents)
 
@@ -239,40 +196,9 @@ Plain capture: [`docs/images/desk/desk-after-update.png`](docs/images/desk/desk-
 
 ---
 
-## Evaluation criteria
+## Course rubric (self-check)
 
-Maps the **course capstone** and **this repo** to the official [Stock Markets Analytics Zoomcamp project rubric](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp/blob/main/projects/README.md) (maximum **36** points; **minimum 6** from the **bold** checkboxes in sections 1–6). Peer reviewers use the course form — **do not inflate scores** here; follow the **Evidence** links.
-
-| Submitted to course form | Role |
-|--------------------------|------|
-| [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) | **Graded pipeline** — data → features → RF/DT → multi-strategy sim → `run.py` / `project.ipynb` |
-| **This repo** (`signal-desk`) + https://signal-desk-c3dx.onrender.com | **LiP / portfolio** — frozen artifact API, desk UI, Ops monitoring, Render deploy |
-
-| # | Rubric block (official) | Max | Claimed | Evidence |
-|---|-------------------------|-----|---------|----------|
-| 1 | **Problem description** | 4 | 3 | [`SMA/Project` problem](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#problem); [`docs/FINDINGS.md`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project/docs/FINDINGS.md); [Mission](#mission) + [Problem](#problem) |
-| 2 | **Data sources** | 4 | 2 | [Lecture sources](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#data-sources-lecture); [20+ derived features](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#derived-features-rubric-2--20-documented) (local parquet on E:) |
-| 3 | **Data transformations + EDA** | 3 | 3 | [`FEATURE_SETS`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/features.py); `run_eda.py` + [`src/eda.py`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/eda.py) |
-| 4 | **Modeling** | 5 | 4 | RF + DT ([`modeling.py`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/modeling.py)); thresholds `0.55`/`0.57`; [`src/tuning.py`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/tuning.py) |
-| 5 | **Trading simulation** | 8 | 5 | Multi-strategy + [`benchmark.py`](https://github.com/zakard114/ZoomCamp/blob/main/SMA/Project/src/benchmark.py) (CAGR, Sharpe, drawdown, passive baseline); desk grid → [`artifacts/latest.json`](artifacts/latest.json) |
-| 6 | **Automation** | 5 | 4 | [`run.py`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project#reproduce), `project.ipynb`, [`docs/AUTOMATION.md`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project/docs/AUTOMATION.md); [`Dockerfile`](Dockerfile), `ops/export_artifacts.py` |
-| 7 | **Bonus** | 7 | 4 | Container, cloud ([Cloud deployment](#cloud-deployment)), monitoring ([Ops → Grafana](#ops-overlay-inspector--log--api--grafana)). Peer subjective (+1–2) not in **Claimed**. |
-| | **Total (self-assessment)** | **36** | **25** | **≥6** from **bold** rows in 1–6 evidenced in [`SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project) (`run.py`, `run_eda.py`). |
-
-**Claimed** = self-score only where linked evidence exists in the capstone repo + this portfolio layer. Not counted: 1M-row dataset, novel API, exact `iterrows` sim, broker API, peer discretionary bonus. Peers and the course form decide the final score.
-
-### Quick verification commands
-
-```powershell
-# Capstone pipeline (replace clone path):
-cd E:\IT_SPACES\AI\ZoomCamp\SMA\Project
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe run.py
-
-# This repo — API + artifact:
-cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals
-uvicorn app.main:app --port 8080
-# Smoke: GET http://127.0.0.1:8080/v1/threshold-grid  →  "count": 6
-```
+Course capstone mapping (**Claimed 25/36**, evidence links, verification commands): [`docs/RUBRIC.md`](docs/RUBRIC.md). Graded pipeline: [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project).
 
 [↑ Contents](#table-of-contents)
 
@@ -280,19 +206,9 @@ uvicorn app.main:app --port 8080
 
 ## Cloud deployment
 
-**Official public face:** Render web service `signal-desk` ([`render.yaml`](render.yaml)).
+Public service: Render `signal-desk` ([`render.yaml`](render.yaml)). Connect GitHub `main`, Docker `Dockerfile`, health `/health`.
 
-1. Connect GitHub repo `zakard114/signal-desk`, branch `main`.
-2. **Web Service** → Environment **Docker** → `Dockerfile` at repo root.
-3. Health check: `/health` (expect `artifact_exists: true`).
-4. **`main` push** triggers rebuild; wait until **Live**, then hard-refresh the desk if static assets look stale.
-
-Smoke after deploy:
-
-- `GET /v1/threshold-grid` → `"count": 6`
-- Desk **Update simulation** twice (e.g. 0.55 and 0.60) → **Ops → Grafana** shows non-zero Simulations
-
-Detail: [`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md).
+Full steps, smoke tests, and artifact refresh: [`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md).
 
 [↑ Contents](#table-of-contents)
 
@@ -300,17 +216,7 @@ Detail: [`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md).
 
 ## Documentation
 
-| Doc | Purpose |
-|-----|---------|
-| [`docs/README.md`](docs/README.md) | Documentation index |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Extended architecture |
-| [`docs/OPS.md`](docs/OPS.md) | Ops overlay and `GET /ops/board` |
-| [`docs/DEMO_WALKTHROUGH.md`](docs/DEMO_WALKTHROUGH.md) | Which inputs change what |
-| [`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md) | Render Blueprint / manual Docker |
-| [`docs/PREVIEW.md`](docs/PREVIEW.md) | Screenshot pack + annotate script |
-| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Full symptom → fix checklist |
-| [`docs/NOTES.md`](docs/NOTES.md) | Artifact model and scaling |
-| [`docs/LIP_LINKEDIN.md`](docs/LIP_LINKEDIN.md) | Learning in Public drafts |
+Index and cross-links: [`docs/README.md`](docs/README.md).
 
 [↑ Contents](#table-of-contents)
 
@@ -318,15 +224,7 @@ Detail: [`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md).
 
 ## Troubleshooting
 
-If the desk shows **UI preview (mock)**, KPIs never move on drag, or Ops Grafana stays at zero:
-
-1. **Cold start on Render** — wait 30–60s, reload. Check `GET /health` → `artifact_exists: true`.
-2. **Mock badge** — API did not load `/v1/meta` or `/v1/threshold-grid`. Fix: confirm deploy finished; artifact present in image (`503` if missing).
-3. **Slider “does nothing”** — you may be between grid points (artifact is **0.55–0.60** only). Jump **0.55 vs 0.60**; watch **Test trades** and signal row count, not CAGR alone.
-4. **Ops Grafana empty** — run **Update simulation** on the desk at least twice, then open **Ops → Grafana** (poll ~4s).
-5. **Stale cloud numbers** — re-run `ops/export_artifacts.py` locally, commit `artifacts/latest.json`, push, **Manual Deploy** on Render.
-
-Full symptoms, causes, and fixes: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
+Mock badge, slider grid, Ops Grafana empty, stale cloud KPIs: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
 
 [↑ Contents](#table-of-contents)
 

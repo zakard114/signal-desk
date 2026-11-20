@@ -30,11 +30,14 @@ After code pushes, confirm **Manual Deploy** if the service lags auto-deploy (Op
 ## After deploy
 
 1. Smoke test:
-   - `https://<your-host>/health` → `{"status":"ok"}`
+   - `https://<your-host>/health` → `{"status":"ok"}` (`artifact_exists: true`)
+   - `GET /v1/threshold-grid` → `"count": 6`
    - `/` → slider updates KPIs (badge: **Live · 6 thresholds**)
+   - Desk **Update simulation** twice (e.g. 0.55 and 0.60) → **Ops → Grafana** shows non-zero Simulations
    - `/v1/meta` → JSON metadata
-2. Edit root `README.md` **Live demo** row with the Render URL
-3. `git commit` + `push` (GitHub About **Website** optional, same URL)
+2. **`main` push** triggers rebuild; wait until **Live**, then hard-refresh the desk if static assets look stale.
+3. Edit root `README.md` **Live demo** row with the Render URL when the hostname changes.
+4. `git commit` + `push` (GitHub About **Website** optional, same URL)
 
 ## Cold start (free tier)
 
