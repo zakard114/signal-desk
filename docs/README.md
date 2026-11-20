@@ -2,7 +2,6 @@
 
 | Doc | Purpose |
 |-----|---------|
-| [RUBRIC.md](RUBRIC.md) | Course project self-check (Claimed 25/36, evidence links) |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Extended architecture (README keeps infographic + compact Mermaid) |
 | [PREVIEW.md](PREVIEW.md) | Screenshot pack — numbered desk, Ops tabs (summary on root README) |
 | [DEPLOY_RENDER.md](DEPLOY_RENDER.md) | Render Blueprint / manual Docker deploy |

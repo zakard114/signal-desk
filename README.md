@@ -35,7 +35,6 @@ Parquet, RandomForest fit, and `export_artifacts.py` stay **offline**; Render sh
 - [Architecture](#architecture)
 - [Project structure](#project-structure)
 - [Screenshots](#screenshots)
-- [Course rubric (self-check)](#course-rubric-self-check)
 - [Cloud deployment](#cloud-deployment)
 - [Documentation](#documentation)
 - [Troubleshooting](#troubleshooting)
@@ -191,14 +190,6 @@ Plain capture: [`docs/images/desk/desk-after-update.png`](docs/images/desk/desk-
 | Inspector | Log | API | Grafana tab |
 |:---:|:---:|:---:|:---:|
 | ![Inspector](docs/images/ops/ops-inspector.png) | ![Log](docs/images/ops/ops-log.png) | ![API](docs/images/ops/ops-api.png) | ![Grafana tab](docs/images/ops/ops-grafana.png) |
-
-[↑ Contents](#table-of-contents)
-
----
-
-## Course rubric (self-check)
-
-Course capstone mapping (**Claimed 25/36**, evidence links, verification commands): [`docs/RUBRIC.md`](docs/RUBRIC.md). Graded pipeline: [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project).
 
 [↑ Contents](#table-of-contents)
 
