@@ -1,6 +1,6 @@
 # Ops console
 
-Signal Desk uses the same **in-app Ops overlay** pattern as the ML midterm HoldRisk desk (hotel-booking-cancellation): one host, no separate Grafana server.
+Signal Desk uses an **in-app Ops overlay** on one host: Inspector, Log, API, and a Grafana-style board from `GET /ops/board` — no separate Grafana server on Render.
 
 ## Open Ops
 
