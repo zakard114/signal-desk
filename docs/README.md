@@ -2,6 +2,7 @@
 
 | Doc | Purpose |
 |-----|---------|
+| [PIPELINE.md](PIPELINE.md) | Local `run.py`, parquet path, export to `artifacts/latest.json` |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Extended architecture (README keeps infographic + compact Mermaid) |
 | [PREVIEW.md](PREVIEW.md) | Screenshot pack — numbered desk, Ops tabs (summary on root README) |
 | [DEPLOY_RENDER.md](DEPLOY_RENDER.md) | Render Blueprint / manual Docker deploy |

@@ -4,7 +4,7 @@
 
 **US equity ML signals — FastAPI + ledger UI over frozen simulation artifacts.**
 
-Built as a portfolio demo alongside [Stock Markets Analytics Zoomcamp](https://github.com/DataTalksClub/stock-markets-analytics-zoomcamp) (capstone pipeline in [ZoomCamp `SMA/Project`](https://github.com/zakard114/ZoomCamp/tree/main/SMA/Project)).
+**Capstone (Stock Markets Analytics Zoomcamp):** live desk in this repo + offline ML in [`pipeline/`](pipeline/) — see [`docs/PIPELINE.md`](docs/PIPELINE.md).
 
 **Live demo (Render):** https://signal-desk-c3dx.onrender.com  
 **OpenAPI:** https://signal-desk-c3dx.onrender.com/docs  
@@ -35,9 +35,7 @@ Parquet, RandomForest fit, and `export_artifacts.py` stay **offline**; Render sh
 - [Architecture](#architecture)
 - [Project structure](#project-structure)
 - [Screenshots](#screenshots)
-- [Cloud deployment](#cloud-deployment)
-- [Documentation](#documentation)
-- [Troubleshooting](#troubleshooting)
+- [Deploy, docs & troubleshooting](#deploy-docs--troubleshooting)
 - [License](#license)
 
 ---
@@ -102,7 +100,7 @@ uvicorn app.main:app --port 8080
 
 Open http://127.0.0.1:8080/ — badge should show live API when `/v1/meta` loads.
 
-**Refresh artifact** (needs course parquet on your machine — not on Render):
+**Refresh artifact** (needs course parquet on your machine — not on Render; see [`docs/PIPELINE.md`](docs/PIPELINE.md)):
 
 ```powershell
 python ops\export_artifacts.py
@@ -195,27 +193,16 @@ Plain capture: [`docs/images/desk/desk-after-update.png`](docs/images/desk/desk-
 
 ---
 
-## Cloud deployment
+## Deploy, docs & troubleshooting
 
-Public service: Render `signal-desk` ([`render.yaml`](render.yaml)). Connect GitHub `main`, Docker `Dockerfile`, health `/health`.
+**Render:** public service [`signal-desk`](https://signal-desk-c3dx.onrender.com) — [`render.yaml`](render.yaml), Dockerfile, health `/health`, GitHub `main` auto-deploy.
 
-Full steps, smoke tests, and artifact refresh: [`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md).
-
-[↑ Contents](#table-of-contents)
-
----
-
-## Documentation
-
-Index and cross-links: [`docs/README.md`](docs/README.md).
-
-[↑ Contents](#table-of-contents)
-
----
-
-## Troubleshooting
-
-Mock badge, slider grid, Ops Grafana empty, stale cloud KPIs: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md).
+| Topic | Doc |
+|-------|-----|
+| Deploy steps, smoke tests, artifact refresh | [`docs/DEPLOY_RENDER.md`](docs/DEPLOY_RENDER.md) |
+| ML pipeline, parquet path, `run.py` | [`docs/PIPELINE.md`](docs/PIPELINE.md) |
+| Doc index | [`docs/README.md`](docs/README.md) |
+| Mock badge, slider grid, Ops Grafana, stale KPIs | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) |
 
 [↑ Contents](#table-of-contents)
 

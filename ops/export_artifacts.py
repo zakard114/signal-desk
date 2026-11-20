@@ -10,10 +10,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ZOOMCAMP_PROJECT = Path(
+PIPELINE_ROOT = Path(
     os.environ.get(
-        "ZOOMCAMP_SMA_PROJECT",
-        r"E:\IT_SPACES\AI\ZoomCamp\SMA\Project",
+        "SMA_PIPELINE_ROOT",
+        str(ROOT / "pipeline"),
     )
 )
 
@@ -22,7 +22,7 @@ os.environ.setdefault("XDG_CACHE_HOME", r"E:\IT_SPACES\AI\.cache")
 os.environ.setdefault("TEMP", r"E:\IT_SPACES\AI\.cache\tmp")
 os.environ.setdefault("TMP", r"E:\IT_SPACES\AI\.cache\tmp")
 
-sys.path.insert(0, str(ZOOMCAMP_PROJECT))
+sys.path.insert(0, str(PIPELINE_ROOT))
 
 from src.load_data import load_combined_parquet  # noqa: E402
 from src.modeling import attach_predictions, build_labeled_frame, fit_random_forest  # noqa: E402
@@ -72,7 +72,7 @@ def main() -> int:
         "product": "Signal Desk",
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "source": {
-            "pipeline": "ZoomCamp SMA/Project",
+            "pipeline": "signal-desk/pipeline",
             "data_path_note": "Local parquet on E:; not stored in this repo",
         },
         "defaults": {"trade_notional_usd": 100.0, "fee_rate": 0.002},
