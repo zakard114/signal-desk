@@ -45,11 +45,12 @@ First request after idle can take ~30s. If `/health` fails once, retry. See [TRO
 
 ## Refreshing data
 
-Render does **not** run `ops/export_artifacts.py`. On E::
+Render does **not** run training. Refresh JSON locally from this repo’s [`pipeline/`](../pipeline/) (see [`PIPELINE.md`](PIPELINE.md)):
 
 ```powershell
 . E:\IT_SPACES\AI\scripts\use_e_drive.ps1
-E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe E:\IT_SPACES\AI\Projects\sma\us-equity-signals\ops\export_artifacts.py
+cd E:\IT_SPACES\AI\Projects\sma\us-equity-signals
+E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe ops\export_artifacts.py
 ```
 
 Commit `artifacts/latest.json` and trigger **Manual Deploy** on Render.

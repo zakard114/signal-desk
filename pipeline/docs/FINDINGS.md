@@ -39,6 +39,10 @@ Outputs JSON summary (stdout) and `docs/figures/eda_top_correlations.png`.
 
 Probability columns `proba_rf` / `proba_dt` are stored on the labeled frame for advanced rules.
 
+## S&P 500 benchmark
+
+`src/sp500_benchmark.py` + `run_analysis.py` compare primary strategy CAGR to ^GSPC buy-hold on the test window. Latest snapshot: `primary_beats_spx_cagr` in `analysis_snapshot.json` (honest record; vector primary may trail index while exact reinvest path differs).
+
 ## Simulation vs benchmarks
 
 | Layer | Module | Rubric |
