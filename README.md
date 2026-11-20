@@ -10,6 +10,13 @@
 **OpenAPI:** https://signal-desk-c3dx.onrender.com/docs  
 **Repository:** https://github.com/zakard114/signal-desk  
 
+## For reviewers (start here)
+
+1. **Live app:** https://signal-desk-c3dx.onrender.com  
+2. **ML pipeline (local):** [`docs/PIPELINE.md`](docs/PIPELINE.md) → [`pipeline/run.py`](pipeline/run.py)  
+3. **App only (no training):** [Quick start](#quick-start) below  
+4. **Data:** combined parquet path and download notes in PIPELINE — not stored in Git  
+
 Desk + **Ops** (Inspector · Log · API · in-app Grafana tab) on one host. No separate Grafana server on Render.
 
 ## Mission
@@ -26,6 +33,7 @@ Parquet, RandomForest fit, and `export_artifacts.py` stay **offline**; Render sh
 
 ## Table of contents
 
+- [For reviewers (start here)](#for-reviewers-start-here)
 - [Mission](#mission)
 - [Problem](#problem)
 - [Status](#status)
@@ -150,8 +158,9 @@ Step-by-step Mermaid (TD) and ASCII: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.
 app/                 # FastAPI, audit middleware, /ops/board
 static/              # Desk + Ops UI (index.html, app.js, app.css)
 ops/                 # export_artifacts.py, screenshot helpers
+pipeline/            # Capstone ML: run.py, src/, FINDINGS, analysis_snapshot
 artifacts/           # latest.json (committed; baked into Docker)
-docs/                # Architecture, Ops, walkthrough, images/
+docs/                # Architecture, Ops, PIPELINE, walkthrough, images/
 Dockerfile           # Render image
 render.yaml          # Blueprint (service signal-desk)
 ```

@@ -94,9 +94,9 @@ E:\IT_SPACES\AI\ZoomCamp\ML\.venv\Scripts\python.exe run.py
 
 Dependencies: `requirements.txt` (shared `ML/.venv` if you completed earlier modules).
 
-## Verified run (local, 2026-11-19)
+## Verified run (local, 2026-11-20)
 
-`ML\.venv\Scripts\python.exe run.py` on combined parquet (`stocks_df_combined_2026_09_18`):
+`ML\.venv\Scripts\python.exe run.py` on combined parquet (`stocks_df_combined_2026_09_18`). Full diagnostics: [`docs/analysis_snapshot.json`](docs/analysis_snapshot.json).
 
 | Metric | Value |
 |--------|-------|
@@ -124,8 +124,8 @@ Latest test-day signals (sample): `RELIANCE.NS`, `SBIN.NS` on `2026-09-18`. At t
 
 ## Documentation
 
-| Doc | Rubric |
-|-----|--------|
+| Doc | Purpose |
+|-----|---------|
 | [`docs/FINDINGS.md`](docs/FINDINGS.md) | Problem steps, difficulties, reproduction |
 | [`docs/AUTOMATION.md`](docs/AUTOMATION.md) | Cron, two data regimes, export to Signal Desk |
 
