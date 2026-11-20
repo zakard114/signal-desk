@@ -1,6 +1,6 @@
 {
   "product": "Signal Desk",
-  "generated_at": "2026-11-19T14:54:15+00:00",
+  "generated_at": "2026-11-20T12:33:22+00:00",
   "source": {
     "pipeline": "ZoomCamp SMA/Project",
     "data_path_note": "Local parquet on E:; not stored in this repo"
